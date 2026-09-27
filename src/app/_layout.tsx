@@ -16,6 +16,7 @@ import { AuthProvider } from '@/providers/auth-provider';
 import { QueryProvider } from '@/providers/query-provider';
 import { ThemeProvider, useTheme } from '@/providers/theme-provider';
 
+// Fontlar yüklenene kadar Splash Screen görünür kalır.
 void SplashScreen.preventAutoHideAsync();
 
 function AppNavigator() {
@@ -43,10 +44,37 @@ function AppNavigator() {
           },
         }}
       >
+        {/* Ana yönlendirme */}
         <Stack.Screen
           name="index"
           options={{
             headerShown: false,
+          }}
+        />
+
+        {/* Dört sekmeli ana navigasyon */}
+        <Stack.Screen
+          name="(tabs)"
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        {/* Profil üzerinden erişilen ayarlar */}
+        <Stack.Screen
+          name="settings"
+          options={{
+            title: 'Ayarlar',
+            headerBackTitle: 'Geri',
+          }}
+        />
+
+        {/* Geliştirici tasarım test ekranı */}
+        <Stack.Screen
+          name="(dev)/design-preview"
+          options={{
+            title: 'Tasarım Testi',
+            headerBackTitle: 'Geri',
           }}
         />
       </Stack>
