@@ -1,4 +1,3 @@
-
 import { vars } from 'nativewind';
 
 import { colorSchemes } from './color-schemes';

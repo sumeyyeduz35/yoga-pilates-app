@@ -44,6 +44,6 @@ export const useAppStore = create<AppState>()(
       partialize: (state) => ({
         themePreference: state.themePreference,
       }),
-    }
-  )
+    },
+  ),
 );

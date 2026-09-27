@@ -1,4 +1,3 @@
-
 const tokens = require('./src/theme/tokens.json');
 
 /** @type {import('tailwindcss').Config} */
@@ -10,7 +9,6 @@ module.exports = {
 
   theme: {
     extend: {
-      
       colors: {
         background: 'var(--color-background)',
         surface: 'var(--color-surface)',
@@ -70,34 +68,13 @@ module.exports = {
       },
 
       fontSize: {
-        xs: [
-          `${tokens.fontSize.xs}px`,
-          { lineHeight: `${tokens.lineHeight.xs}px` },
-        ],
-        sm: [
-          `${tokens.fontSize.sm}px`,
-          { lineHeight: `${tokens.lineHeight.sm}px` },
-        ],
-        base: [
-          `${tokens.fontSize.base}px`,
-          { lineHeight: `${tokens.lineHeight.base}px` },
-        ],
-        lg: [
-          `${tokens.fontSize.lg}px`,
-          { lineHeight: `${tokens.lineHeight.lg}px` },
-        ],
-        xl: [
-          `${tokens.fontSize.xl}px`,
-          { lineHeight: `${tokens.lineHeight.xl}px` },
-        ],
-        '2xl': [
-          `${tokens.fontSize['2xl']}px`,
-          { lineHeight: `${tokens.lineHeight['2xl']}px` },
-        ],
-        '3xl': [
-          `${tokens.fontSize['3xl']}px`,
-          { lineHeight: `${tokens.lineHeight['3xl']}px` },
-        ],
+        xs: [`${tokens.fontSize.xs}px`, { lineHeight: `${tokens.lineHeight.xs}px` }],
+        sm: [`${tokens.fontSize.sm}px`, { lineHeight: `${tokens.lineHeight.sm}px` }],
+        base: [`${tokens.fontSize.base}px`, { lineHeight: `${tokens.lineHeight.base}px` }],
+        lg: [`${tokens.fontSize.lg}px`, { lineHeight: `${tokens.lineHeight.lg}px` }],
+        xl: [`${tokens.fontSize.xl}px`, { lineHeight: `${tokens.lineHeight.xl}px` }],
+        '2xl': [`${tokens.fontSize['2xl']}px`, { lineHeight: `${tokens.lineHeight['2xl']}px` }],
+        '3xl': [`${tokens.fontSize['3xl']}px`, { lineHeight: `${tokens.lineHeight['3xl']}px` }],
       },
 
       letterSpacing: {
