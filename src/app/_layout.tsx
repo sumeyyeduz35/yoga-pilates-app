@@ -52,6 +52,14 @@ function AppNavigator() {
           }}
         />
 
+        {/* Authentication ekranları */}
+        <Stack.Screen
+          name="(auth)"
+          options={{
+            headerShown: false,
+          }}
+        />
+
         {/* Dört sekmeli ana navigasyon */}
         <Stack.Screen
           name="(tabs)"
