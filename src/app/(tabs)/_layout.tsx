@@ -5,7 +5,7 @@ import { useAuth } from '@/providers/auth-provider';
 import { useTheme } from '@/providers/theme-provider';
 
 export default function TabsLayout() {
-  const { session, isLoading } = useAuth();
+  const { session, profile, isLoading, profileError } = useAuth();
   const { colors } = useTheme();
 
   if (isLoading) {
@@ -14,6 +14,14 @@ export default function TabsLayout() {
 
   if (!session) {
     return <Redirect href="/(auth)/login" />;
+  }
+
+  if (profileError || !profile) {
+    return null;
+  }
+
+  if (!profile.onboarding_completed) {
+    return <Redirect href="/(onboarding)" />;
   }
 
   return (
@@ -41,7 +49,11 @@ export default function TabsLayout() {
         options={{
           title: 'Ana Sayfa',
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'home' : 'home-outline'} size={size} color={color} />
+            <Ionicons
+              name={focused ? 'home' : 'home-outline'}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -51,7 +63,11 @@ export default function TabsLayout() {
         options={{
           title: 'Keşfet',
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'compass' : 'compass-outline'} size={size} color={color} />
+            <Ionicons
+              name={focused ? 'compass' : 'compass-outline'}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -61,7 +77,11 @@ export default function TabsLayout() {
         options={{
           title: 'Programlar',
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={size} color={color} />
+            <Ionicons
+              name={focused ? 'calendar' : 'calendar-outline'}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -71,7 +91,11 @@ export default function TabsLayout() {
         options={{
           title: 'Profil',
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'person' : 'person-outline'} size={size} color={color} />
+            <Ionicons
+              name={focused ? 'person' : 'person-outline'}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />

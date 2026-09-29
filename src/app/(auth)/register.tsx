@@ -1,6 +1,12 @@
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  View,
+} from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -17,7 +23,8 @@ export default function RegisterScreen() {
 
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [passwordConfirmationError, setPasswordConfirmationError] = useState('');
+  const [passwordConfirmationError, setPasswordConfirmationError] =
+    useState('');
   const [authError, setAuthError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -40,10 +47,12 @@ export default function RegisterScreen() {
     }
 
     if (!password) {
-      setPasswordError('Şifre oluştur.');
+      setPasswordError('Şifreni gir.');
       isValid = false;
     } else if (password.length < MIN_PASSWORD_LENGTH) {
-      setPasswordError(`Şifre en az ${MIN_PASSWORD_LENGTH} karakter olmalı.`);
+      setPasswordError(
+        `Şifren en az ${MIN_PASSWORD_LENGTH} karakter olmalı.`,
+      );
       isValid = false;
     }
 
@@ -66,11 +75,28 @@ export default function RegisterScreen() {
     setIsSubmitting(true);
 
     try {
-      const { error } = await signUpWithEmail(email, password);
+      const { data, error } = await signUpWithEmail(email, password);
 
       if (error) {
         setAuthError(getRegisterErrorMessage(error.message));
+        return;
       }
+
+      if (data.session) {
+        router.replace('/');
+        return;
+      }
+
+      Alert.alert(
+        'E-posta doğrulaması gerekli',
+        'Hesabın oluşturuldu. Devam etmek için e-posta adresine gönderilen doğrulama bağlantısını aç.',
+        [
+          {
+            text: 'Giriş ekranına git',
+            onPress: () => router.replace('/(auth)/login'),
+          },
+        ],
+      );
     } catch {
       setAuthError('Beklenmeyen bir hata oluştu. Lütfen tekrar dene.');
     } finally {
@@ -93,7 +119,8 @@ export default function RegisterScreen() {
             <Typography variant="display">Hesabını oluştur</Typography>
 
             <Typography variant="body" tone="muted" className="mt-sm">
-              Yoga, Pilates ve Reformer pratiğini kişiselleştirmek için hesabını oluştur.
+              Yoga, Pilates ve Reformer pratiğini kişiselleştirmek için hesabını
+              oluştur.
             </Typography>
           </View>
 
@@ -130,7 +157,6 @@ export default function RegisterScreen() {
               secureTextEntry
               textContentType="newPassword"
               autoComplete="new-password"
-              returnKeyType="next"
               editable={!isSubmitting}
             />
 
@@ -147,24 +173,21 @@ export default function RegisterScreen() {
               secureTextEntry
               textContentType="newPassword"
               autoComplete="new-password"
-              returnKeyType="done"
-              onSubmitEditing={() => {
-                void handleRegister();
-              }}
               editable={!isSubmitting}
             />
 
             {authError ? (
-              <Typography variant="bodySmall" tone="danger" accessibilityRole="alert">
+              <Typography variant="bodySmall" tone="danger">
                 {authError}
               </Typography>
             ) : null}
 
             <Button
-              label="Hesap Oluştur"
+              label="Hesap oluştur"
               size="lg"
               fullWidth
               loading={isSubmitting}
+              disabled={isSubmitting}
               onPress={() => {
                 void handleRegister();
               }}
