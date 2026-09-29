@@ -11,6 +11,9 @@ export async function signUpWithEmail(email: string, password: string) {
   return supabase.auth.signUp({
     email: email.trim(),
     password,
+    options: {
+      emailRedirectTo: 'yogapilatesapp://auth/callback',
+    },
   });
 }
 
