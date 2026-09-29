@@ -1,14 +1,14 @@
 import { supabase } from '@/lib/supabase';
 
 import type {
-    Difficulty,
-    Discipline,
-    DisciplineSlug,
-    Exercise,
-    ExerciseCategory,
-    Program,
-    ProgramExerciseWithExercise,
-    ProgramWithExercises,
+  Difficulty,
+  Discipline,
+  DisciplineSlug,
+  Exercise,
+  ExerciseCategory,
+  Program,
+  ProgramExerciseWithExercise,
+  ProgramWithExercises,
 } from '../types/content';
 
 type DisciplineRow = {
@@ -142,9 +142,7 @@ function mapProgram(row: ProgramRow): Program {
   };
 }
 
-function getJoinedExercise(
-  value: ExerciseRow | ExerciseRow[],
-): ExerciseRow {
+function getJoinedExercise(value: ExerciseRow | ExerciseRow[]): ExerciseRow {
   const exercise = Array.isArray(value) ? value[0] : value;
 
   if (!exercise) {
@@ -168,14 +166,10 @@ export async function getDisciplines(): Promise<Discipline[]> {
   return (data as DisciplineRow[]).map(mapDiscipline);
 }
 
-export async function getExerciseCategories(
-  disciplineId: string,
-): Promise<ExerciseCategory[]> {
+export async function getExerciseCategories(disciplineId: string): Promise<ExerciseCategory[]> {
   const { data, error } = await supabase
     .from('exercise_categories')
-    .select(
-      'id, discipline_id, name, slug, description, sort_order, is_active',
-    )
+    .select('id, discipline_id, name, slug, description, sort_order, is_active')
     .eq('discipline_id', disciplineId)
     .eq('is_active', true)
     .order('sort_order');
@@ -187,9 +181,7 @@ export async function getExerciseCategories(
   return (data as ExerciseCategoryRow[]).map(mapExerciseCategory);
 }
 
-export async function getExercises(
-  disciplineId: string,
-): Promise<Exercise[]> {
+export async function getExercises(disciplineId: string): Promise<Exercise[]> {
   const { data, error } = await supabase
     .from('exercises')
     .select(
@@ -206,9 +198,7 @@ export async function getExercises(
   return (data as ExerciseRow[]).map(mapExercise);
 }
 
-export async function getPrograms(
-  disciplineId?: string,
-): Promise<Program[]> {
+export async function getPrograms(disciplineId?: string): Promise<Program[]> {
   let query = supabase
     .from('programs')
     .select(
@@ -230,9 +220,7 @@ export async function getPrograms(
   return (data as ProgramRow[]).map(mapProgram);
 }
 
-export async function getProgramBySlug(
-  slug: string,
-): Promise<ProgramWithExercises | null> {
+export async function getProgramBySlug(slug: string): Promise<ProgramWithExercises | null> {
   const { data: programData, error: programError } = await supabase
     .from('programs')
     .select(
