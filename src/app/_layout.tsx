@@ -77,6 +77,15 @@ function AppNavigator() {
           }}
         />
 
+        {/* Program detay ekranı */}
+        <Stack.Screen
+          name="program/[slug]"
+          options={{
+            title: 'Program Detayı',
+            headerBackTitle: 'Geri',
+          }}
+        />
+
         {/* Geliştirici tasarım test ekranı */}
         <Stack.Screen
           name="(dev)/design-preview"
