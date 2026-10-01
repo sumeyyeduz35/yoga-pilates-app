@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { router, type Href } from 'expo-router';
+import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
 import { Typography } from '@/components/ui/Typography';
@@ -102,47 +103,52 @@ export default function ProgramsScreen() {
             const discipline = disciplineTheme[disciplineSlug];
 
             return (
-              <Card key={program.id} variant="outlined" discipline={disciplineSlug} padding="lg">
-                <View className="flex-row items-start justify-between gap-md">
-                  <View className="flex-1">
-                    <Typography variant="caption">{discipline.label}</Typography>
+              <Pressable
+                key={program.id}
+                onPress={() => router.push(`/program/${program.slug}` as Href)}
+              >
+                <Card variant="outlined" discipline={disciplineSlug} padding="lg">
+                  <View className="flex-row items-start justify-between gap-md">
+                    <View className="flex-1">
+                      <Typography variant="caption">{discipline.label}</Typography>
 
-                    <View className="mt-xs">
-                      <Typography variant="h3">{program.title}</Typography>
+                      <View className="mt-xs">
+                        <Typography variant="h3">{program.title}</Typography>
+                      </View>
                     </View>
+
+                    <Ionicons name="fitness-outline" size={24} color={discipline.color} />
                   </View>
 
-                  <Ionicons name="fitness-outline" size={24} color={discipline.color} />
-                </View>
-
-                {program.description ? (
-                  <View className="mt-sm">
-                    <Typography variant="body" tone="muted">
-                      {program.description}
-                    </Typography>
-                  </View>
-                ) : null}
-
-                <View className="mt-md flex-row items-center gap-lg">
-                  <View className="flex-row items-center gap-xs">
-                    <Ionicons name="speedometer-outline" size={16} color={colors.textMuted} />
-
-                    <Typography variant="caption" tone="muted">
-                      {getDifficultyLabel(program.difficulty)}
-                    </Typography>
-                  </View>
-
-                  {program.durationMinutes ? (
-                    <View className="flex-row items-center gap-xs">
-                      <Ionicons name="time-outline" size={16} color={colors.textMuted} />
-
-                      <Typography variant="caption" tone="muted">
-                        {program.durationMinutes} dk
+                  {program.description ? (
+                    <View className="mt-sm">
+                      <Typography variant="body" tone="muted">
+                        {program.description}
                       </Typography>
                     </View>
                   ) : null}
-                </View>
-              </Card>
+
+                  <View className="mt-md flex-row items-center gap-lg">
+                    <View className="flex-row items-center gap-xs">
+                      <Ionicons name="speedometer-outline" size={16} color={colors.textMuted} />
+
+                      <Typography variant="caption" tone="muted">
+                        {getDifficultyLabel(program.difficulty)}
+                      </Typography>
+                    </View>
+
+                    {program.durationMinutes ? (
+                      <View className="flex-row items-center gap-xs">
+                        <Ionicons name="time-outline" size={16} color={colors.textMuted} />
+
+                        <Typography variant="caption" tone="muted">
+                          {program.durationMinutes} dk
+                        </Typography>
+                      </View>
+                    ) : null}
+                  </View>
+                </Card>
+              </Pressable>
             );
           })
         ) : (
