@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Redirect, Tabs } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/providers/auth-provider';
 import { useTheme } from '@/providers/theme-provider';
@@ -7,6 +8,7 @@ import { useTheme } from '@/providers/theme-provider';
 export default function TabsLayout() {
   const { session, profile, isLoading, profileError } = useAuth();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   if (isLoading) {
     return null;
@@ -34,13 +36,13 @@ export default function TabsLayout() {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
           borderTopWidth: 1,
+          height: 60 + insets.bottom,
+          paddingTop: 6,
+          paddingBottom: Math.max(insets.bottom, 6),
         },
         tabBarLabelStyle: {
           fontFamily: 'Manrope_600SemiBold',
           fontSize: 11,
-        },
-        tabBarIconStyle: {
-          marginTop: 4,
         },
       }}
     >
