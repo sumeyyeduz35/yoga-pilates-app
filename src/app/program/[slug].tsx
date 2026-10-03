@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { Typography } from '@/components/ui/Typography';
 import { useProgramQuery } from '@/features/content/queries/content-queries';
 import {
+  useRestartProgramMutation,
   useStartProgramMutation,
   useUserProgramQuery,
 } from '@/features/program-progress/queries/program-progress-queries';
@@ -26,7 +27,10 @@ function getDifficultyLabel(difficulty: string) {
   }
 }
 
-function formatExercisePrescription(durationSeconds: number | null, repetitions: number | null) {
+function formatExercisePrescription(
+  durationSeconds: number | null,
+  repetitions: number | null,
+) {
   if (durationSeconds) {
     return `${durationSeconds} sn`;
   }
@@ -47,24 +51,77 @@ export default function ProgramDetailScreen() {
   const programQuery = useProgramQuery(slug);
   const program = programQuery.data;
 
-  const userProgramQuery = useUserProgramQuery(user?.id, program?.id);
-
-  const startProgramMutation = useStartProgramMutation(user?.id, program?.id);
+  const userProgramQuery = useUserProgramQuery(
+    user?.id,
+    program?.id,
+  );
 
   const userProgram = userProgramQuery.data;
 
-  const handleStartProgram = () => {
+  const startProgramMutation = useStartProgramMutation(
+    user?.id,
+    program?.id,
+  );
+
+  const restartProgramMutation = useRestartProgramMutation(
+    user?.id,
+    program?.id,
+    userProgram?.id,
+  );
+
+  const handleProgramAction = () => {
     if (!user || !program) {
       return;
     }
 
-    startProgramMutation.mutate();
+    if (!userProgram) {
+      startProgramMutation.mutate(undefined, {
+        onSuccess: () => {
+          router.push(
+            `/program/${program.slug}/session` as Href,
+          );
+        },
+      });
+
+      return;
+    }
+
+    if (userProgram.status === 'completed') {
+      restartProgramMutation.mutate(undefined, {
+        onSuccess: () => {
+          router.push(
+            `/program/${program.slug}/session` as Href,
+          );
+        },
+      });
+
+      return;
+    }
+
+    router.push(
+      `/program/${program.slug}/session` as Href,
+    );
+  };
+
+  const getProgramButtonLabel = () => {
+    if (!userProgram) {
+      return 'Programa Başla';
+    }
+
+    if (userProgram.status === 'completed') {
+      return 'Programı Tekrarla';
+    }
+
+    return 'Programa Devam Et';
   };
 
   if (programQuery.isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background px-lg">
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator
+          size="large"
+          color={colors.primary}
+        />
 
         <View className="mt-md">
           <Typography variant="body" tone="muted">
@@ -78,15 +135,26 @@ export default function ProgramDetailScreen() {
   if (programQuery.isError) {
     return (
       <View className="flex-1 items-center justify-center bg-background px-lg">
-        <Ionicons name="alert-circle-outline" size={40} color={colors.textMuted} />
+        <Ionicons
+          name="alert-circle-outline"
+          size={40}
+          color={colors.textMuted}
+        />
 
         <View className="mt-md">
-          <Typography variant="h3">Program yüklenemedi</Typography>
+          <Typography variant="h3">
+            Program yüklenemedi
+          </Typography>
         </View>
 
         <View className="mt-xs">
-          <Typography variant="body" tone="muted" className="text-center">
-            Program bilgilerine ulaşırken bir sorun oluştu. Lütfen tekrar dene.
+          <Typography
+            variant="body"
+            tone="muted"
+            className="text-center"
+          >
+            Program bilgilerine ulaşırken bir sorun oluştu.
+            Lütfen tekrar dene.
           </Typography>
         </View>
       </View>
@@ -96,14 +164,24 @@ export default function ProgramDetailScreen() {
   if (!program) {
     return (
       <View className="flex-1 items-center justify-center bg-background px-lg">
-        <Ionicons name="search-outline" size={40} color={colors.textMuted} />
+        <Ionicons
+          name="search-outline"
+          size={40}
+          color={colors.textMuted}
+        />
 
         <View className="mt-md">
-          <Typography variant="h3">Program bulunamadı</Typography>
+          <Typography variant="h3">
+            Program bulunamadı
+          </Typography>
         </View>
 
         <View className="mt-xs">
-          <Typography variant="body" tone="muted" className="text-center">
+          <Typography
+            variant="body"
+            tone="muted"
+            className="text-center"
+          >
             Bu program artık mevcut olmayabilir.
           </Typography>
         </View>
@@ -117,7 +195,9 @@ export default function ProgramDetailScreen() {
       contentContainerClassName="px-lg pb-2xl pt-lg"
       showsVerticalScrollIndicator={false}
     >
-      <Typography variant="h1">{program.title}</Typography>
+      <Typography variant="h1">
+        {program.title}
+      </Typography>
 
       {program.description ? (
         <View className="mt-sm">
@@ -129,27 +209,48 @@ export default function ProgramDetailScreen() {
 
       <View className="mt-lg flex-row flex-wrap gap-lg">
         <View className="flex-row items-center gap-xs">
-          <Ionicons name="speedometer-outline" size={18} color={colors.textMuted} />
+          <Ionicons
+            name="speedometer-outline"
+            size={18}
+            color={colors.textMuted}
+          />
 
-          <Typography variant="caption" tone="muted">
+          <Typography
+            variant="caption"
+            tone="muted"
+          >
             {getDifficultyLabel(program.difficulty)}
           </Typography>
         </View>
 
         {program.durationMinutes ? (
           <View className="flex-row items-center gap-xs">
-            <Ionicons name="time-outline" size={18} color={colors.textMuted} />
+            <Ionicons
+              name="time-outline"
+              size={18}
+              color={colors.textMuted}
+            />
 
-            <Typography variant="caption" tone="muted">
+            <Typography
+              variant="caption"
+              tone="muted"
+            >
               {program.durationMinutes} dk
             </Typography>
           </View>
         ) : null}
 
         <View className="flex-row items-center gap-xs">
-          <Ionicons name="fitness-outline" size={18} color={colors.textMuted} />
+          <Ionicons
+            name="fitness-outline"
+            size={18}
+            color={colors.textMuted}
+          />
 
-          <Typography variant="caption" tone="muted">
+          <Typography
+            variant="caption"
+            tone="muted"
+          >
             {program.exercises.length} hareket
           </Typography>
         </View>
@@ -158,37 +259,59 @@ export default function ProgramDetailScreen() {
       <View className="mt-xl">
         {userProgramQuery.isLoading ? (
           <View className="items-center py-md">
-            <ActivityIndicator size="small" color={colors.primary} />
+            <ActivityIndicator
+              size="small"
+              color={colors.primary}
+            />
           </View>
         ) : (
           <Button
-            label={userProgram ? 'Programa Devam Et' : 'Programa Başla'}
+            label={getProgramButtonLabel()}
             size="lg"
             fullWidth
-            loading={startProgramMutation.isPending}
+            loading={
+              startProgramMutation.isPending ||
+              restartProgramMutation.isPending
+            }
             disabled={!user}
-            onPress={() => {
-              if (userProgram) {
-                router.push(`/program/${program.slug}/session` as Href);
-                return;
-              }
-
-              handleStartProgram();
-            }}
+            onPress={handleProgramAction}
           />
         )}
 
-        {startProgramMutation.isError ? (
+        {userProgram?.status === 'completed' ? (
           <View className="mt-sm">
-            <Typography variant="caption" tone="muted" className="text-center">
-              Program başlatılırken bir sorun oluştu. Lütfen tekrar dene.
+            <Typography
+              variant="caption"
+              tone="primary"
+              className="text-center"
+            >
+              Bu programı tamamladın. İstersen baştan tekrar
+              başlayabilirsin.
+            </Typography>
+          </View>
+        ) : null}
+
+        {startProgramMutation.isError ||
+        restartProgramMutation.isError ? (
+          <View className="mt-sm">
+            <Typography
+              variant="caption"
+              tone="danger"
+              className="text-center"
+            >
+              Program başlatılırken bir sorun oluştu. Lütfen
+              tekrar dene.
             </Typography>
           </View>
         ) : null}
 
         {!user ? (
           <View className="mt-sm">
-            <Typography variant="caption" tone="muted" className="text-center">
+            <Typography
+              variant="caption"
+              tone="muted"
+              className="text-center"
+            >
               Programa başlamak için giriş yapmalısın.
             </Typography>
           </View>
@@ -196,7 +319,9 @@ export default function ProgramDetailScreen() {
       </View>
 
       <View className="mt-2xl">
-        <Typography variant="h2">Program İçeriği</Typography>
+        <Typography variant="h2">
+          Program İçeriği
+        </Typography>
 
         <View className="mt-xs">
           <Typography variant="body" tone="muted">
@@ -207,61 +332,103 @@ export default function ProgramDetailScreen() {
 
       <View className="mt-md gap-md">
         {program.exercises.length > 0 ? (
-          program.exercises.map((programExercise, index) => (
-            <Card key={programExercise.id} variant="outlined" padding="lg">
-              <View className="flex-row items-start gap-md">
-                <View className="items-center justify-center">
-                  <Typography variant="h3">{index + 1}</Typography>
-                </View>
+          program.exercises.map(
+            (programExercise, index) => (
+              <Card
+                key={programExercise.id}
+                variant="outlined"
+                padding="lg"
+              >
+                <View className="flex-row items-start gap-md">
+                  <View className="items-center justify-center">
+                    <Typography variant="h3">
+                      {index + 1}
+                    </Typography>
+                  </View>
 
-                <View className="flex-1">
-                  <Typography variant="h3">{programExercise.exercise.name}</Typography>
+                  <View className="flex-1">
+                    <Typography variant="h3">
+                      {programExercise.exercise.name}
+                    </Typography>
 
-                  {programExercise.exercise.description ? (
-                    <View className="mt-xs">
-                      <Typography variant="body" tone="muted">
-                        {programExercise.exercise.description}
-                      </Typography>
-                    </View>
-                  ) : null}
-
-                  <View className="mt-md flex-row flex-wrap gap-lg">
-                    <View className="flex-row items-center gap-xs">
-                      <Ionicons name="repeat-outline" size={16} color={colors.textMuted} />
-
-                      <Typography variant="caption" tone="muted">
-                        {formatExercisePrescription(
-                          programExercise.durationSeconds,
-                          programExercise.repetitions,
-                        )}
-                      </Typography>
-                    </View>
-
-                    {programExercise.restSeconds ? (
-                      <View className="flex-row items-center gap-xs">
-                        <Ionicons name="timer-outline" size={16} color={colors.textMuted} />
-
-                        <Typography variant="caption" tone="muted">
-                          {programExercise.restSeconds} sn dinlenme
+                    {programExercise.exercise.description ? (
+                      <View className="mt-xs">
+                        <Typography
+                          variant="body"
+                          tone="muted"
+                        >
+                          {
+                            programExercise.exercise
+                              .description
+                          }
                         </Typography>
                       </View>
                     ) : null}
+
+                    <View className="mt-md flex-row flex-wrap gap-lg">
+                      <View className="flex-row items-center gap-xs">
+                        <Ionicons
+                          name="repeat-outline"
+                          size={16}
+                          color={colors.textMuted}
+                        />
+
+                        <Typography
+                          variant="caption"
+                          tone="muted"
+                        >
+                          {formatExercisePrescription(
+                            programExercise.durationSeconds,
+                            programExercise.repetitions,
+                          )}
+                        </Typography>
+                      </View>
+
+                      {programExercise.restSeconds ? (
+                        <View className="flex-row items-center gap-xs">
+                          <Ionicons
+                            name="timer-outline"
+                            size={16}
+                            color={colors.textMuted}
+                          />
+
+                          <Typography
+                            variant="caption"
+                            tone="muted"
+                          >
+                            {programExercise.restSeconds} sn
+                            dinlenme
+                          </Typography>
+                        </View>
+                      ) : null}
+                    </View>
                   </View>
                 </View>
-              </View>
-            </Card>
-          ))
+              </Card>
+            ),
+          )
         ) : (
           <View className="items-center py-2xl">
-            <Ionicons name="fitness-outline" size={36} color={colors.textMuted} />
+            <Ionicons
+              name="fitness-outline"
+              size={36}
+              color={colors.textMuted}
+            />
 
             <View className="mt-md">
-              <Typography variant="h3">Henüz hareket eklenmemiş</Typography>
+              <Typography variant="h3">
+                Henüz hareket eklenmemiş
+              </Typography>
             </View>
 
             <View className="mt-xs">
-              <Typography variant="body" tone="muted" className="text-center">
-                Bu programın hareketleri daha sonra eklenecek.
+              <Typography
+                variant="body"
+                tone="muted"
+                className="text-center"
+              >
+                Bu programın hareketleri daha sonra
+                eklenecek.
               </Typography>
             </View>
           </View>

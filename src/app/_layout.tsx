@@ -87,13 +87,15 @@ function AppNavigator() {
         />
 
         {/* Geliştirici tasarım test ekranı */}
-        <Stack.Screen
-          name="(dev)/design-preview"
-          options={{
-            title: 'Tasarım Testi',
-            headerBackTitle: 'Geri',
-          }}
-        />
+        {__DEV__ && (
+          <Stack.Screen
+            name="(dev)/design-preview"
+            options={{
+              title: 'Tasarım Testi',
+              headerBackTitle: 'Geri',
+            }}
+          />
+        )}
       </Stack>
     </>
   );

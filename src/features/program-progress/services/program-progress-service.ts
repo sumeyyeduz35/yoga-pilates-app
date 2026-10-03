@@ -27,7 +27,9 @@ type UserProgramExerciseProgressRow = {
   updated_at: string;
 };
 
-function mapUserProgram(row: UserProgramRow): UserProgram {
+function mapUserProgram(
+  row: UserProgramRow,
+): UserProgram {
   return {
     id: row.id,
     userId: row.user_id,
@@ -40,7 +42,9 @@ function mapUserProgram(row: UserProgramRow): UserProgram {
   };
 }
 
-function mapExerciseProgress(row: UserProgramExerciseProgressRow): UserProgramExerciseProgress {
+function mapExerciseProgress(
+  row: UserProgramExerciseProgressRow,
+): UserProgramExerciseProgress {
   return {
     id: row.id,
     userProgramId: row.user_program_id,
@@ -58,7 +62,9 @@ export async function getUserProgram(
 ): Promise<UserProgram | null> {
   const { data, error } = await supabase
     .from('user_programs')
-    .select('id, user_id, program_id, status, started_at, completed_at, created_at, updated_at')
+    .select(
+      'id, user_id, program_id, status, started_at, completed_at, created_at, updated_at',
+    )
     .eq('user_id', userId)
     .eq('program_id', programId)
     .maybeSingle();
@@ -71,11 +77,43 @@ export async function getUserProgram(
     return null;
   }
 
-  return mapUserProgram(data as UserProgramRow);
+  return mapUserProgram(
+    data as UserProgramRow,
+  );
 }
 
-export async function startProgram(userId: string, programId: string): Promise<UserProgram> {
-  const existingProgram = await getUserProgram(userId, programId);
+export async function getActiveUserPrograms(
+  userId: string,
+): Promise<UserProgram[]> {
+  const { data, error } = await supabase
+    .from('user_programs')
+    .select(
+      'id, user_id, program_id, status, started_at, completed_at, created_at, updated_at',
+    )
+    .eq('user_id', userId)
+    .eq('status', 'in_progress')
+    .order('updated_at', {
+      ascending: false,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return (
+    data as UserProgramRow[]
+  ).map(mapUserProgram);
+}
+
+export async function startProgram(
+  userId: string,
+  programId: string,
+): Promise<UserProgram> {
+  const existingProgram =
+    await getUserProgram(
+      userId,
+      programId,
+    );
 
   if (existingProgram) {
     return existingProgram;
@@ -88,14 +126,18 @@ export async function startProgram(userId: string, programId: string): Promise<U
       program_id: programId,
       status: 'in_progress',
     })
-    .select('id, user_id, program_id, status, started_at, completed_at, created_at, updated_at')
+    .select(
+      'id, user_id, program_id, status, started_at, completed_at, created_at, updated_at',
+    )
     .single();
 
   if (error) {
     throw error;
   }
 
-  return mapUserProgram(data as UserProgramRow);
+  return mapUserProgram(
+    data as UserProgramRow,
+  );
 }
 
 export async function getUserProgramExerciseProgress(
@@ -106,13 +148,18 @@ export async function getUserProgramExerciseProgress(
     .select(
       'id, user_program_id, program_exercise_id, is_completed, completed_at, created_at, updated_at',
     )
-    .eq('user_program_id', userProgramId);
+    .eq(
+      'user_program_id',
+      userProgramId,
+    );
 
   if (error) {
     throw error;
   }
 
-  return (data as UserProgramExerciseProgressRow[]).map(mapExerciseProgress);
+  return (
+    data as UserProgramExerciseProgressRow[]
+  ).map(mapExerciseProgress);
 }
 
 export async function setProgramExerciseCompleted(
@@ -120,19 +167,26 @@ export async function setProgramExerciseCompleted(
   programExerciseId: string,
   isCompleted: boolean,
 ): Promise<UserProgramExerciseProgress> {
-  const completedAt = isCompleted ? new Date().toISOString() : null;
+  const completedAt = isCompleted
+    ? new Date().toISOString()
+    : null;
 
   const { data, error } = await supabase
-    .from('user_program_exercise_progress')
+    .from(
+      'user_program_exercise_progress',
+    )
     .upsert(
       {
-        user_program_id: userProgramId,
-        program_exercise_id: programExerciseId,
+        user_program_id:
+          userProgramId,
+        program_exercise_id:
+          programExerciseId,
         is_completed: isCompleted,
         completed_at: completedAt,
       },
       {
-        onConflict: 'user_program_id,program_exercise_id',
+        onConflict:
+          'user_program_id,program_exercise_id',
       },
     )
     .select(
@@ -144,23 +198,76 @@ export async function setProgramExerciseCompleted(
     throw error;
   }
 
-  return mapExerciseProgress(data as UserProgramExerciseProgressRow);
+  return mapExerciseProgress(
+    data as UserProgramExerciseProgressRow,
+  );
 }
 
-export async function completeProgram(userProgramId: string): Promise<UserProgram> {
+export async function completeProgram(
+  userProgramId: string,
+): Promise<UserProgram> {
   const { data, error } = await supabase
     .from('user_programs')
     .update({
       status: 'completed',
-      completed_at: new Date().toISOString(),
+      completed_at:
+        new Date().toISOString(),
     })
     .eq('id', userProgramId)
-    .select('id, user_id, program_id, status, started_at, completed_at, created_at, updated_at')
+    .select(
+      'id, user_id, program_id, status, started_at, completed_at, created_at, updated_at',
+    )
     .single();
 
   if (error) {
     throw error;
   }
 
-  return mapUserProgram(data as UserProgramRow);
+  return mapUserProgram(
+    data as UserProgramRow,
+  );
+}
+
+export async function restartProgram(
+  userProgramId: string,
+): Promise<UserProgram> {
+  const { error: progressError } =
+    await supabase
+      .from(
+        'user_program_exercise_progress',
+      )
+      .update({
+        is_completed: false,
+        completed_at: null,
+      })
+      .eq(
+        'user_program_id',
+        userProgramId,
+      );
+
+  if (progressError) {
+    throw progressError;
+  }
+
+  const { data, error } = await supabase
+    .from('user_programs')
+    .update({
+      status: 'in_progress',
+      started_at:
+        new Date().toISOString(),
+      completed_at: null,
+    })
+    .eq('id', userProgramId)
+    .select(
+      'id, user_id, program_id, status, started_at, completed_at, created_at, updated_at',
+    )
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return mapUserProgram(
+    data as UserProgramRow,
+  );
 }
