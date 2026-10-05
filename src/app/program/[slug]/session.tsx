@@ -4,7 +4,10 @@ import {
   useLocalSearchParams,
   useNavigation,
 } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import {
+  useEffect,
+  useRef,
+} from 'react';
 import {
   ActivityIndicator,
   View,
@@ -14,13 +17,14 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Typography } from '@/components/ui/Typography';
 import { useProgramQuery } from '@/features/content/queries/content-queries';
+import { ExerciseGuidanceTemplate } from '@/features/exercise-guidance/components/ExerciseGuidanceTemplate';
+import { useExerciseGuidanceStore } from '@/features/exercise-guidance/exercise-guidance-store';
+import { getExerciseGuidanceConfig } from '@/features/exercise-guidance/services/exercise-guidance-service';
 import { ExerciseVisual } from '@/features/exercise-session/components/ExerciseVisual';
 import { SessionCompletion } from '@/features/exercise-session/components/SessionCompletion';
 import { SessionCountdown } from '@/features/exercise-session/components/SessionCountdown';
-import { SessionProgressBar } from '@/features/exercise-session/components/SessionProgressBar';
 import { SessionRest } from '@/features/exercise-session/components/SessionRest';
 import { SessionScreen } from '@/features/exercise-session/components/SessionScreen';
-import { TimerRing } from '@/features/exercise-session/components/TimerRing';
 import { useExerciseSessionStore } from '@/features/exercise-session/exercise-session-store';
 import { getExerciseSessionProgress } from '@/features/exercise-session/services/exercise-session-service';
 import type { ExerciseSession } from '@/features/exercise-session/types/exercise-session';
@@ -86,6 +90,10 @@ export default function ProgramSessionScreen() {
       program?.id,
       userProgram?.id,
     );
+
+  /*
+   * Phase 8 Session Store
+   */
 
   const session =
     useExerciseSessionStore(
@@ -193,6 +201,62 @@ export default function ProgramSessionScreen() {
         state.incrementElapsedSeconds,
     );
 
+  /*
+   * Phase 9 Guidance Store
+   */
+
+  const selectedView =
+    useExerciseGuidanceStore(
+      (state) => state.view,
+    );
+
+  const playbackRate =
+    useExerciseGuidanceStore(
+      (state) =>
+        state.playbackRate,
+    );
+
+  const showMuscles =
+    useExerciseGuidanceStore(
+      (state) =>
+        state.showMuscles,
+    );
+
+  const voiceEnabled =
+    useExerciseGuidanceStore(
+      (state) =>
+        state.voiceEnabled,
+    );
+
+  const setView =
+    useExerciseGuidanceStore(
+      (state) => state.setView,
+    );
+
+  const setPlaybackRate =
+    useExerciseGuidanceStore(
+      (state) =>
+        state.setPlaybackRate,
+    );
+
+  const toggleMuscles =
+    useExerciseGuidanceStore(
+      (state) =>
+        state.toggleMuscles,
+    );
+
+  const toggleVoice =
+    useExerciseGuidanceStore(
+      (state) =>
+        state.toggleVoice,
+    );
+
+  const resetGuidancePlayer =
+    useExerciseGuidanceStore(
+      (state) =>
+        state.resetPlayer,
+    );
+
   const isLoading =
     programQuery.isLoading ||
     userProgramQuery.isLoading ||
@@ -203,6 +267,11 @@ export default function ProgramSessionScreen() {
       session.currentExerciseIndex
     ];
 
+  const guidanceConfig =
+    getExerciseGuidanceConfig(
+      currentExercise?.exerciseSlug,
+    );
+
   const isFirstExercise =
     session?.currentExerciseIndex ===
     0;
@@ -211,6 +280,31 @@ export default function ProgramSessionScreen() {
     !!session &&
     session.currentExerciseIndex ===
       session.exercises.length - 1;
+
+  /*
+   * Yeni egzersize geçildiğinde
+   * guidance player state sıfırlanır.
+   */
+
+  useEffect(() => {
+    resetGuidancePlayer();
+
+    if (guidanceConfig) {
+      setView(
+        guidanceConfig.animation
+          .defaultView,
+      );
+    }
+  }, [
+    currentExercise?.exerciseSlug,
+    guidanceConfig,
+    resetGuidancePlayer,
+    setView,
+  ]);
+
+  /*
+   * Session oluşturma
+   */
 
   useEffect(() => {
     if (!program || !userProgram) {
@@ -251,13 +345,17 @@ export default function ProgramSessionScreen() {
         id: userProgram.id,
         programId: program.id,
         programDayId: null,
+
         status: 'idle',
         phase: 'ready',
+
         currentExerciseIndex:
           initialIndex,
+
         startedAt: null,
         pausedAt: null,
         completedAt: null,
+
         elapsedSeconds: 0,
 
         exercises:
@@ -271,6 +369,10 @@ export default function ProgramSessionScreen() {
               exerciseId:
                 programExercise
                   .exercise.id,
+
+              exerciseSlug:
+                programExercise
+                  .exercise.slug,
 
               name:
                 programExercise
@@ -305,6 +407,7 @@ export default function ProgramSessionScreen() {
   /*
    * 3 → 2 → 1 hazırlık sayacı
    */
+
   useEffect(() => {
     if (
       session?.phase !==
@@ -337,8 +440,9 @@ export default function ProgramSessionScreen() {
   ]);
 
   /*
-   * Toplam aktif seans süresi.
+   * Toplam aktif seans süresi
    */
+
   useEffect(() => {
     if (
       session?.phase !==
@@ -365,8 +469,9 @@ export default function ProgramSessionScreen() {
   ]);
 
   /*
-   * Süreli egzersiz sayacı.
+   * Egzersiz sayacı
    */
+
   useEffect(() => {
     if (
       session?.phase !==
@@ -394,8 +499,9 @@ export default function ProgramSessionScreen() {
   ]);
 
   /*
-   * Dinlenme sayacı.
+   * Dinlenme sayacı
    */
+
   useEffect(() => {
     if (
       session?.phase !==
@@ -410,6 +516,7 @@ export default function ProgramSessionScreen() {
     ) {
       finishRest();
       nextExercise();
+
       return;
     }
 
@@ -432,9 +539,10 @@ export default function ProgramSessionScreen() {
   ]);
 
   /*
-   * Süreli egzersiz 0'a ulaştığında
-   * otomatik olarak tamamlanır.
+   * Süre 0 olduğunda hareketi
+   * otomatik tamamla
    */
+
   useEffect(() => {
     if (
       session?.phase !==
@@ -460,6 +568,7 @@ export default function ProgramSessionScreen() {
       {
         programExerciseId:
           currentExercise.id,
+
         isCompleted: true,
       },
       {
@@ -514,6 +623,10 @@ export default function ProgramSessionScreen() {
     startRest,
   ]);
 
+  /*
+   * Loading
+   */
+
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background px-lg">
@@ -533,6 +646,10 @@ export default function ProgramSessionScreen() {
       </View>
     );
   }
+
+  /*
+   * Session bulunamadı
+   */
 
   if (
     !program ||
@@ -572,7 +689,12 @@ export default function ProgramSessionScreen() {
       session,
     );
 
+  /*
+   * Genel handlers
+   */
+
   const handleClose = () => {
+    resetGuidancePlayer();
     clearSession();
     router.back();
   };
@@ -631,8 +753,9 @@ export default function ProgramSessionScreen() {
     };
 
   /*
-   * HAZIRLIK EKRANI
+   * Hazırlık ekranı
    */
+
   if (session.phase === 'ready') {
     return (
       <SessionScreen>
@@ -769,8 +892,9 @@ export default function ProgramSessionScreen() {
   }
 
   /*
-   * 3 - 2 - 1 COUNTDOWN
+   * Countdown
    */
+
   if (
     session.phase ===
     'countdown'
@@ -789,8 +913,9 @@ export default function ProgramSessionScreen() {
   }
 
   /*
-   * DİNLENME
+   * Dinlenme
    */
+
   if (
     session.phase ===
     'resting'
@@ -816,8 +941,9 @@ export default function ProgramSessionScreen() {
   }
 
   /*
-   * TAMAMLANDI
+   * Session tamamlandı
    */
+
   if (
     session.phase ===
     'completed'
@@ -831,6 +957,7 @@ export default function ProgramSessionScreen() {
           session.elapsedSeconds
         }
         onReturn={() => {
+          resetGuidancePlayer();
           clearSession();
           router.back();
         }}
@@ -839,199 +966,200 @@ export default function ProgramSessionScreen() {
   }
 
   /*
-   * AKTİF / PAUSED EGZERSİZ
+   * Aktif / Paused
    */
+
   const isPaused =
     session.phase === 'paused';
 
+  const supportsFrontView =
+    guidanceConfig?.animation.supportedViews.includes(
+      'front',
+    ) ?? false;
+
+  const supportsSideView =
+    guidanceConfig?.animation.supportedViews.includes(
+      'side',
+    ) ?? false;
+
+  const supportsMuscleOverlay =
+    guidanceConfig?.animation
+      .supportsMuscleOverlay ??
+    false;
+
+  const disciplineLabel =
+    guidanceConfig?.discipline ===
+    'yoga'
+      ? 'Yoga'
+      : guidanceConfig?.discipline ===
+          'pilates'
+        ? 'Pilates'
+        : guidanceConfig?.discipline ===
+            'reformer'
+          ? 'Reformer'
+          : 'Egzersiz';
+
+  const breathCue =
+    guidanceConfig?.breathCues[0];
+
+  const voiceCue =
+    guidanceConfig?.voiceCues[0];
+
+  /*
+   * Phase 9 kas bilgileri
+   */
+
+  const primaryMuscles =
+    guidanceConfig?.muscles
+      .filter(
+        (muscle) =>
+          muscle.role === 'primary',
+      )
+      .map(
+        (muscle) => muscle.name,
+      ) ?? [];
+
+  const secondaryMuscles =
+    guidanceConfig?.muscles
+      .filter(
+        (muscle) =>
+          muscle.role === 'secondary',
+      )
+      .map(
+        (muscle) => muscle.name,
+      ) ?? [];
+
+  const totalSeconds =
+    Math.max(
+      currentExercise
+        ?.durationSeconds ??
+        remainingSeconds ??
+        1,
+      1,
+    );
+
+  const activeRemainingSeconds =
+    remainingSeconds ??
+    totalSeconds;
+
   return (
-    <SessionScreen>
-      {/* Üst kontrol alanı */}
-      <View className="flex-row items-center justify-between">
-        <Button
-          label="Kapat"
-          variant="ghost"
-          size="sm"
-          onPress={handleClose}
-        />
-
-        <Typography
-          variant="label"
-          tone="muted"
-        >
-          {session.currentExerciseIndex +
-            1}{' '}
-          /{' '}
-          {progress.totalExerciseCount}
-        </Typography>
-      </View>
-
-      {/* Seans ilerlemesi */}
-      <View className="mt-md">
-        <SessionProgressBar
-          progress={
-            progress.progressPercentage
-          }
-        />
-
-        <View className="mt-sm flex-row items-center justify-between">
-          <View className="flex-1 pr-md">
-            <Typography
-              variant="caption"
-              tone="muted"
-            >
-              {program.title}
-            </Typography>
-          </View>
-
-          <Typography
-            variant="caption"
-            tone="muted"
-          >
-            %
-            {Math.round(
-              progress.progressPercentage,
-            )}{' '}
-            tamamlandı
-          </Typography>
-        </View>
-      </View>
-
-      {/* Egzersiz */}
-      <View className="mt-lg flex-1">
-        <ExerciseVisual
-          exerciseName={
-            currentExercise?.name ??
-            'Egzersiz'
-          }
-          isPaused={isPaused}
-        />
-
-        {/* Süreli egzersiz */}
-        {currentExercise?.durationSeconds ? (
-          <View className="mt-lg items-center">
-            <TimerRing
-              remainingSeconds={
-                remainingSeconds ??
-                currentExercise.durationSeconds
-              }
-              totalSeconds={
-                currentExercise.durationSeconds
-              }
-              isPaused={isPaused}
-              size={160}
-            />
-          </View>
-        ) : null}
-
-        {/* Tekrarlı egzersiz */}
-        {currentExercise?.repetitionCount ? (
-          <View className="mt-lg">
-            <Card
-              variant="outlined"
-              padding="lg"
-            >
-              <View className="items-center">
-                <Typography
-                  variant="caption"
-                  tone="muted"
-                >
-                  Tekrar
-                </Typography>
-
-                <View className="mt-xs">
-                  <Typography variant="display">
-                    {
-                      currentExercise.repetitionCount
-                    }
-                  </Typography>
-                </View>
-
-                <Typography
-                  variant="bodySmall"
-                  tone="muted"
-                  className="text-center"
-                >
-                  Hareketi kontrollü ve
-                  nefesinle uyumlu tamamla.
-                </Typography>
-              </View>
-            </Card>
-          </View>
-        ) : null}
-      </View>
-
-      {/* Kontroller */}
-      <View className="mt-lg gap-md">
-        <Button
-          label={
-            isPaused
-              ? 'Devam Et'
-              : 'Duraklat'
-          }
-          variant="outline"
-          fullWidth
-          onPress={
-            isPaused
-              ? resume
-              : pause
-          }
-        />
-
-        <View className="flex-row gap-md">
-          <View className="flex-1">
-            <Button
-              label="Önceki"
-              variant="secondary"
-              fullWidth
-              disabled={
-                isFirstExercise ||
-                !isPaused
-              }
-              onPress={
-                previousExercise
-              }
-            />
-          </View>
-
-          <View className="flex-1">
-            <Button
-              label={
-                isLastExercise
-                  ? 'Seansı Bitir'
-                  : currentExercise?.durationSeconds
-                    ? 'Hareketi Bitir'
-                    : 'Hareketi Tamamla'
-              }
-              fullWidth
-              loading={
-                setExerciseCompletedMutation
-                  .isPending ||
-                completeProgramMutation
-                  .isPending
-              }
-              disabled={isPaused}
-              onPress={
-                handleExerciseCompleted
-              }
-            />
-          </View>
-        </View>
-
-        {setExerciseCompletedMutation
-          .isError ||
+    <ExerciseGuidanceTemplate
+      programTitle={program.title}
+      progressLabel={`${
+        session.currentExerciseIndex +
+        1
+      } / ${
+        progress.totalExerciseCount
+      }`}
+      progressPercentage={
+        progress.progressPercentage
+      }
+      exerciseName={
+        currentExercise?.name ??
+        'Egzersiz'
+      }
+      disciplineLabel={
+        disciplineLabel
+      }
+      breathLabel={
+        breathCue?.label ??
+        'Nefesine odaklan'
+      }
+      breathInstruction={
+        voiceCue?.text ??
+        guidanceConfig?.fallback
+          .textInstruction ??
+        'Hareketi kontrollü şekilde uygula.'
+      }
+      remainingSeconds={
+        activeRemainingSeconds
+      }
+      totalSeconds={
+        totalSeconds
+      }
+      isPaused={isPaused}
+      isFirstExercise={
+        isFirstExercise
+      }
+      isLastExercise={
+        isLastExercise
+      }
+      selectedView={
+        selectedView
+      }
+      playbackRate={
+        playbackRate
+      }
+      showMuscles={
+        showMuscles
+      }
+      voiceEnabled={
+        voiceEnabled
+      }
+      primaryMuscles={
+        primaryMuscles
+      }
+      secondaryMuscles={
+        secondaryMuscles
+      }
+      supportsFrontView={
+        supportsFrontView
+      }
+      supportsSideView={
+        supportsSideView
+      }
+      supportsMuscleOverlay={
+        supportsMuscleOverlay
+      }
+      completeLoading={
+        setExerciseCompletedMutation
+          .isPending ||
         completeProgramMutation
-          .isError ? (
-          <Typography
-            variant="caption"
-            tone="danger"
-            className="text-center"
-          >
-            İşlem sırasında bir sorun
-            oluştu. Tekrar dene.
-          </Typography>
-        ) : null}
-      </View>
-    </SessionScreen>
+          .isPending
+      }
+      onClose={handleClose}
+      onTogglePause={() => {
+        if (isPaused) {
+          resume();
+          return;
+        }
+
+        pause();
+      }}
+      onPressPrevious={() => {
+        if (!isPaused) {
+          return;
+        }
+
+        previousExercise();
+      }}
+      onPressComplete={() => {
+        if (isPaused) {
+          return;
+        }
+
+        handleExerciseCompleted();
+      }}
+      onSelectView={
+        setView
+      }
+      onSelectPlaybackRate={
+        setPlaybackRate
+      }
+      onToggleMuscles={
+        toggleMuscles
+      }
+      onToggleVoice={
+        toggleVoice
+      }
+    >
+      <ExerciseVisual
+        exerciseSlug={
+          currentExercise
+            ?.exerciseSlug
+        }
+        isPaused={isPaused}
+      />
+    </ExerciseGuidanceTemplate>
   );
 }

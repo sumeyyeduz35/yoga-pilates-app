@@ -16,6 +16,7 @@ export type ExerciseSessionPhase =
 export type ExerciseSessionExercise = {
   id: string;
   exerciseId: string;
+  exerciseSlug: string;
   name: string;
   order: number;
   durationSeconds: number | null;
