@@ -1,7 +1,9 @@
+
 import { Ionicons } from '@expo/vector-icons';
 import { Redirect, Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppHeader } from '@/components/layout/AppHeader';
 import { useAuth } from '@/providers/auth-provider';
 import { useTheme } from '@/providers/theme-provider';
 
@@ -29,9 +31,10 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        header: () => <AppHeader />,
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.text,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
@@ -42,7 +45,10 @@ export default function TabsLayout() {
         },
         tabBarLabelStyle: {
           fontFamily: 'Manrope_600SemiBold',
-          fontSize: 11,
+          fontSize: 10,
+        },
+        tabBarItemStyle: {
+          paddingHorizontal: 0,
         },
       }}
     >
@@ -50,6 +56,12 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Ana Sayfa',
+          header: () => (
+            <AppHeader
+              showProfile
+              showNotifications
+            />
+          ),
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? 'home' : 'home-outline'}
@@ -66,7 +78,7 @@ export default function TabsLayout() {
           title: 'Keşfet',
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
-              name={focused ? 'compass' : 'compass-outline'}
+              name={focused ? 'search' : 'search-outline'}
               size={size}
               color={color}
             />
@@ -81,6 +93,20 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? 'calendar' : 'calendar-outline'}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="tracking"
+        options={{
+          title: 'Takip',
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? 'stats-chart' : 'stats-chart-outline'}
               size={size}
               color={color}
             />

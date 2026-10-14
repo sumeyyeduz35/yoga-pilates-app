@@ -1,5 +1,6 @@
+
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, View } from 'react-native';
+import { Image, Pressable, View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
 import { Typography } from '@/components/ui/Typography';
@@ -21,50 +22,59 @@ export function ContinuePracticeCard({
   onPress,
 }: ContinuePracticeCardProps) {
   const { colors } = useTheme();
-
   const normalizedProgress = Math.min(Math.max(progress, 0), 100);
 
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${title} programına devam et`}
       style={({ pressed }) => ({
         opacity: pressed ? 0.85 : 1,
       })}
     >
-      <Card variant="elevated" padding="lg">
-        <View className="flex-row items-center justify-between">
-          <View className="flex-1 pr-md">
-            <Typography variant="caption" tone="muted">
-              {discipline} · {duration}
-            </Typography>
-
-            <View className="mt-xs">
-              <Typography variant="h3">{title}</Typography>
-            </View>
-          </View>
-
-          <View className="h-12 w-12 items-center justify-center rounded-full bg-primary">
-            <Ionicons name="play" size={20} color={colors.background} />
-          </View>
-        </View>
-
-        <View className="mt-lg">
-          <View className="h-2 overflow-hidden rounded-full bg-border">
-            <View
-              className="h-full rounded-full bg-primary"
-              style={{ width: `${normalizedProgress}%` }}
+      <Card variant="elevated" padding="md">
+        <View className="flex-row items-center">
+          <View
+            className="h-24 w-24 overflow-hidden rounded-lg"
+            style={{ backgroundColor: colors.border }}
+          >
+            <Image
+              source={require('../../../../assets/exercise-guidance/characters/female-base/side/female-side-neutral-master.png')}
+              resizeMode="contain"
+              className="h-full w-full"
             />
           </View>
 
-          <View className="mt-sm flex-row justify-between">
-            <Typography variant="caption" tone="muted">
-              İlerlemen
+          <View className="ml-md flex-1">
+            <Typography variant="h3" numberOfLines={2}>
+              {title}
             </Typography>
 
-            <Typography variant="caption" tone="muted">
-              %{normalizedProgress}
+            <Typography
+              variant="caption"
+              tone="muted"
+              className="mt-xs"
+              numberOfLines={2}
+            >
+              {discipline} · {duration}
+            </Typography>
+
+            <Typography variant="caption" tone="primary" className="mt-sm">
+              %{normalizedProgress} tamamlandı
             </Typography>
           </View>
+
+          <View className="ml-sm h-11 w-11 items-center justify-center rounded-full bg-primary">
+            <Ionicons name="play" size={19} color={colors.background} />
+          </View>
+        </View>
+
+        <View className="mt-md h-1.5 overflow-hidden rounded-full bg-border">
+          <View
+            className="h-full rounded-full bg-primary"
+            style={{ width: `${normalizedProgress}%` }}
+          />
         </View>
       </Card>
     </Pressable>
