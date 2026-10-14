@@ -12,13 +12,22 @@ import {
 import { Typography } from '@/components/ui/Typography';
 import {
   useDisciplinesQuery,
+  useExerciseCategoriesQuery,
   useExercisesQuery,
 } from '@/features/content/queries/content-queries';
-import type { DisciplineSlug } from '@/features/content/types/content';
+import type {
+  DisciplineSlug,
+  Exercise,
+} from '@/features/content/types/content';
 import { ExplorePracticeCard } from '@/features/explore/components/ExplorePracticeCard';
+import { FeaturedPracticeCard } from '@/features/home/components/FeaturedPracticeCard';
 import { useTheme } from '@/providers/theme-provider';
 
-type ExploreFilterKey = 'all' | DisciplineSlug;
+type ExploreFilterKey =
+  | 'all'
+  | DisciplineSlug
+  | 'flexibility'
+  | 'strength';
 
 const exploreFilters: {
   key: ExploreFilterKey;
@@ -28,6 +37,17 @@ const exploreFilters: {
   { key: 'yoga', label: 'Yoga' },
   { key: 'pilates', label: 'Pilates' },
   { key: 'reformer', label: 'Reformer' },
+  { key: 'flexibility', label: 'Esneme' },
+  { key: 'strength', label: 'Güç' },
+];
+
+const flexibilityCategorySlugs = ['flexibility', 'mobility'];
+
+const strengthCategorySlugs = [
+  'core',
+  'full-body',
+  'upper-body',
+  'lower-body',
 ];
 
 function getDifficultyLabel(difficulty: string) {
@@ -52,9 +72,34 @@ function getDurationLabel(durationSeconds: number | null) {
     return `${durationSeconds} sn`;
   }
 
-  const minutes = Math.ceil(durationSeconds / 60);
+  return `${Math.ceil(durationSeconds / 60)} dk`;
+}
 
-  return `${minutes} dk`;
+function getDailyFeaturedExercise(
+  exercises: Exercise[],
+): Exercise | undefined {
+  if (exercises.length === 0) {
+    return undefined;
+  }
+
+  const sortedExercises = [...exercises].sort((a, b) =>
+    a.id.localeCompare(b.id),
+  );
+
+  const today = new Date();
+
+  const dateKey = [
+    today.getFullYear(),
+    today.getMonth() + 1,
+    today.getDate(),
+  ].join('-');
+
+  const dateSeed = Array.from(dateKey).reduce(
+    (total, character) => total + character.charCodeAt(0),
+    0,
+  );
+
+  return sortedExercises[dateSeed % sortedExercises.length];
 }
 
 export default function ExploreScreen() {
@@ -66,13 +111,6 @@ export default function ExploreScreen() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const disciplinesQuery = useDisciplinesQuery();
-
-  const selectedDiscipline =
-    selectedFilter === 'all'
-      ? undefined
-      : disciplinesQuery.data?.find(
-          (discipline) => discipline.slug === selectedFilter,
-        );
 
   const yogaDiscipline = disciplinesQuery.data?.find(
     (discipline) => discipline.slug === 'yoga',
@@ -87,8 +125,21 @@ export default function ExploreScreen() {
   );
 
   const yogaExercisesQuery = useExercisesQuery(yogaDiscipline?.id);
-  const pilatesExercisesQuery = useExercisesQuery(pilatesDiscipline?.id);
-  const reformerExercisesQuery = useExercisesQuery(reformerDiscipline?.id);
+
+  const pilatesExercisesQuery =
+    useExercisesQuery(pilatesDiscipline?.id);
+
+  const reformerExercisesQuery =
+    useExercisesQuery(reformerDiscipline?.id);
+
+  const yogaCategoriesQuery =
+    useExerciseCategoriesQuery(yogaDiscipline?.id);
+
+  const pilatesCategoriesQuery =
+    useExerciseCategoriesQuery(pilatesDiscipline?.id);
+
+  const reformerCategoriesQuery =
+    useExerciseCategoriesQuery(reformerDiscipline?.id);
 
   const exercises = useMemo(
     () => [
@@ -103,6 +154,29 @@ export default function ExploreScreen() {
     ],
   );
 
+  const categories = useMemo(
+    () => [
+      ...(yogaCategoriesQuery.data ?? []),
+      ...(pilatesCategoriesQuery.data ?? []),
+      ...(reformerCategoriesQuery.data ?? []),
+    ],
+    [
+      yogaCategoriesQuery.data,
+      pilatesCategoriesQuery.data,
+      reformerCategoriesQuery.data,
+    ],
+  );
+
+  const categorySlugById = useMemo(() => {
+    return categories.reduce<Record<string, string>>(
+      (accumulator, category) => {
+        accumulator[category.id] = category.slug;
+        return accumulator;
+      },
+      {},
+    );
+  }, [categories]);
+
   const filteredExercises = useMemo(() => {
     const normalizedQuery = searchQuery
       .trim()
@@ -113,9 +187,39 @@ export default function ExploreScreen() {
         (item) => item.id === exercise.disciplineId,
       );
 
-      const matchesDiscipline =
-        selectedFilter === 'all' ||
-        exercise.disciplineId === selectedDiscipline?.id;
+      const categorySlug = exercise.categoryId
+        ? categorySlugById[exercise.categoryId]
+        : undefined;
+
+      const matchesSelectedFilter = (() => {
+        if (selectedFilter === 'all') {
+          return true;
+        }
+
+        if (
+          selectedFilter === 'yoga' ||
+          selectedFilter === 'pilates' ||
+          selectedFilter === 'reformer'
+        ) {
+          return discipline?.slug === selectedFilter;
+        }
+
+        if (selectedFilter === 'flexibility') {
+          return (
+            categorySlug !== undefined &&
+            flexibilityCategorySlugs.includes(categorySlug)
+          );
+        }
+
+        if (selectedFilter === 'strength') {
+          return (
+            categorySlug !== undefined &&
+            strengthCategorySlugs.includes(categorySlug)
+          );
+        }
+
+        return true;
+      })();
 
       const searchableText = [
         exercise.name,
@@ -130,27 +234,41 @@ export default function ExploreScreen() {
         normalizedQuery.length === 0 ||
         searchableText.includes(normalizedQuery);
 
-      return matchesDiscipline && matchesSearch;
+      return matchesSelectedFilter && matchesSearch;
     });
   }, [
+    categorySlugById,
     disciplinesQuery.data,
     exercises,
     searchQuery,
-    selectedDiscipline?.id,
     selectedFilter,
   ]);
+
+  const featuredExercise = useMemo(() => {
+    if (filteredExercises.length > 0) {
+      return getDailyFeaturedExercise(filteredExercises);
+    }
+
+    return getDailyFeaturedExercise(exercises);
+  }, [exercises, filteredExercises]);
 
   const isLoading =
     disciplinesQuery.isLoading ||
     yogaExercisesQuery.isLoading ||
     pilatesExercisesQuery.isLoading ||
-    reformerExercisesQuery.isLoading;
+    reformerExercisesQuery.isLoading ||
+    yogaCategoriesQuery.isLoading ||
+    pilatesCategoriesQuery.isLoading ||
+    reformerCategoriesQuery.isLoading;
 
   const isError =
     disciplinesQuery.isError ||
     yogaExercisesQuery.isError ||
     pilatesExercisesQuery.isError ||
-    reformerExercisesQuery.isError;
+    reformerExercisesQuery.isError ||
+    yogaCategoriesQuery.isError ||
+    pilatesCategoriesQuery.isError ||
+    reformerCategoriesQuery.isError;
 
   if (isLoading) {
     return (
@@ -187,7 +305,8 @@ export default function ExploreScreen() {
             tone="muted"
             className="text-center"
           >
-            İçeriklere ulaşırken bir sorun oluştu. Lütfen tekrar dene.
+            İçeriklere ulaşırken bir sorun oluştu.
+            Lütfen tekrar dene.
           </Typography>
         </View>
       </View>
@@ -201,51 +320,65 @@ export default function ExploreScreen() {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
-      {/* Page Introduction */}
-      <View className="mb-sm">
-        <Typography variant="body">
-          Bugün nasıl hareket etmek istersin?
+      {/* Introduction */}
+      <View>
+        <Typography variant="bodySmall" tone="muted">
+          Kendine iyi gelecek pratikleri keşfet.
         </Typography>
       </View>
 
       {/* Search */}
-      <View className="mt-md flex-row items-center rounded-lg border border-border bg-surface px-md">
-        <Ionicons
-          name="search-outline"
-          size={20}
-          color={colors.textMuted}
-        />
+      <View className="mt-lg flex-row items-center gap-sm">
+        <View className="flex-1 flex-row items-center rounded-full border border-border bg-surface px-md">
+          <Ionicons
+            name="search-outline"
+            size={20}
+            color={colors.textMuted}
+          />
 
-        <TextInput
-          className="ml-sm flex-1 py-md text-base text-text"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Pratik ara..."
-          placeholderTextColor={colors.textSubtle}
-          returnKeyType="search"
-          accessibilityLabel="Pratik ara"
-        />
+          <TextInput
+            className="ml-sm flex-1 py-md text-base text-text"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Egzersiz, program veya hedef ara..."
+            placeholderTextColor={colors.textSubtle}
+            returnKeyType="search"
+            accessibilityLabel="Egzersiz, program veya hedef ara"
+          />
 
-        {searchQuery.length > 0 ? (
-          <Pressable
-            onPress={() => setSearchQuery('')}
-            hitSlop={10}
-            accessibilityRole="button"
-            accessibilityLabel="Aramayı temizle"
-          >
-            <Ionicons
-              name="close-circle"
-              size={20}
-              color={colors.textMuted}
-            />
-          </Pressable>
-        ) : null}
+          {searchQuery.length > 0 ? (
+            <Pressable
+              onPress={() => setSearchQuery('')}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel="Aramayı temizle"
+            >
+              <Ionicons
+                name="close-circle"
+                size={20}
+                color={colors.textMuted}
+              />
+            </Pressable>
+          ) : null}
+        </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Filtre seçenekleri"
+          className="h-14 w-14 items-center justify-center rounded-full border border-border bg-surface"
+        >
+          <Ionicons
+            name="options-outline"
+            size={20}
+            color={colors.text}
+          />
+        </Pressable>
       </View>
 
-      {/* Discipline Filters */}
+      {/* Filter Chips */}
       <ScrollView
         horizontal
-        className="mt-lg"
+        className="mt-md"
         contentContainerClassName="gap-sm"
         showsHorizontalScrollIndicator={false}
       >
@@ -266,8 +399,7 @@ export default function ExploreScreen() {
               ].join(' ')}
             >
               <Typography
-                variant="caption"
-                tone="default"
+                variant="bodySmall"
                 className={isSelected ? 'text-white' : ''}
               >
                 {filter.label}
@@ -277,11 +409,35 @@ export default function ExploreScreen() {
         })}
       </ScrollView>
 
+      {/* Featured Hero Card */}
+      {featuredExercise ? (
+        <View
+          className="mt-lg"
+          style={{
+            marginHorizontal: -12,
+          }}
+        >
+          <FeaturedPracticeCard
+            title={featuredExercise.name}
+            description={
+              featuredExercise.description ??
+              'Kendine iyi gelecek kısa bir pratikle devam et.'
+            }
+            duration={getDurationLabel(
+              featuredExercise.durationSeconds,
+            )}
+            badgeLabel="Öne Çıkan"
+            ctaLabel="Hemen Başla"
+            imageSource={require('../../../../assets/images/explore/featured-yoga.png')}
+          />
+        </View>
+      ) : null}
+
       {/* Practice List */}
-      <View className="mt-xl">
+      <View className="mt-2xl">
         <View className="flex-row items-end justify-between">
           <Typography variant="h2">
-            Pratikler
+            Tüm Pratikler
           </Typography>
 
           <Typography variant="caption" tone="muted">
@@ -339,7 +495,7 @@ export default function ExploreScreen() {
                   tone="muted"
                   className="text-center"
                 >
-                  Farklı bir arama veya disiplin deneyebilirsin.
+                  Farklı bir arama veya filtre deneyebilirsin.
                 </Typography>
               </View>
             </View>
