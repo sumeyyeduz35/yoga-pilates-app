@@ -1,9 +1,19 @@
+
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  TextInput,
+  View,
+} from 'react-native';
 
 import { Typography } from '@/components/ui/Typography';
-import { useDisciplinesQuery, useExercisesQuery } from '@/features/content/queries/content-queries';
+import {
+  useDisciplinesQuery,
+  useExercisesQuery,
+} from '@/features/content/queries/content-queries';
 import type { DisciplineSlug } from '@/features/content/types/content';
 import { ExplorePracticeCard } from '@/features/explore/components/ExplorePracticeCard';
 import { useTheme } from '@/providers/theme-provider';
@@ -50,7 +60,9 @@ function getDurationLabel(durationSeconds: number | null) {
 export default function ExploreScreen() {
   const { colors } = useTheme();
 
-  const [selectedFilter, setSelectedFilter] = useState<ExploreFilterKey>('all');
+  const [selectedFilter, setSelectedFilter] =
+    useState<ExploreFilterKey>('all');
+
   const [searchQuery, setSearchQuery] = useState('');
 
   const disciplinesQuery = useDisciplinesQuery();
@@ -58,12 +70,18 @@ export default function ExploreScreen() {
   const selectedDiscipline =
     selectedFilter === 'all'
       ? undefined
-      : disciplinesQuery.data?.find((discipline) => discipline.slug === selectedFilter);
+      : disciplinesQuery.data?.find(
+          (discipline) => discipline.slug === selectedFilter,
+        );
 
-  const yogaDiscipline = disciplinesQuery.data?.find((discipline) => discipline.slug === 'yoga');
+  const yogaDiscipline = disciplinesQuery.data?.find(
+    (discipline) => discipline.slug === 'yoga',
+  );
+
   const pilatesDiscipline = disciplinesQuery.data?.find(
     (discipline) => discipline.slug === 'pilates',
   );
+
   const reformerDiscipline = disciplinesQuery.data?.find(
     (discipline) => discipline.slug === 'reformer',
   );
@@ -78,17 +96,26 @@ export default function ExploreScreen() {
       ...(pilatesExercisesQuery.data ?? []),
       ...(reformerExercisesQuery.data ?? []),
     ],
-    [yogaExercisesQuery.data, pilatesExercisesQuery.data, reformerExercisesQuery.data],
+    [
+      yogaExercisesQuery.data,
+      pilatesExercisesQuery.data,
+      reformerExercisesQuery.data,
+    ],
   );
 
   const filteredExercises = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLocaleLowerCase('tr-TR');
+    const normalizedQuery = searchQuery
+      .trim()
+      .toLocaleLowerCase('tr-TR');
 
     return exercises.filter((exercise) => {
-      const discipline = disciplinesQuery.data?.find((item) => item.id === exercise.disciplineId);
+      const discipline = disciplinesQuery.data?.find(
+        (item) => item.id === exercise.disciplineId,
+      );
 
       const matchesDiscipline =
-        selectedFilter === 'all' || exercise.disciplineId === selectedDiscipline?.id;
+        selectedFilter === 'all' ||
+        exercise.disciplineId === selectedDiscipline?.id;
 
       const searchableText = [
         exercise.name,
@@ -100,11 +127,18 @@ export default function ExploreScreen() {
         .toLocaleLowerCase('tr-TR');
 
       const matchesSearch =
-        normalizedQuery.length === 0 || searchableText.includes(normalizedQuery);
+        normalizedQuery.length === 0 ||
+        searchableText.includes(normalizedQuery);
 
       return matchesDiscipline && matchesSearch;
     });
-  }, [disciplinesQuery.data, exercises, searchQuery, selectedDiscipline?.id, selectedFilter]);
+  }, [
+    disciplinesQuery.data,
+    exercises,
+    searchQuery,
+    selectedDiscipline?.id,
+    selectedFilter,
+  ]);
 
   const isLoading =
     disciplinesQuery.isLoading ||
@@ -135,14 +169,24 @@ export default function ExploreScreen() {
   if (isError) {
     return (
       <View className="flex-1 items-center justify-center bg-background px-lg">
-        <Ionicons name="alert-circle-outline" size={36} color={colors.textMuted} />
+        <Ionicons
+          name="alert-circle-outline"
+          size={36}
+          color={colors.textMuted}
+        />
 
         <View className="mt-md">
-          <Typography variant="h3">Pratikler yüklenemedi</Typography>
+          <Typography variant="h3">
+            Pratikler yüklenemedi
+          </Typography>
         </View>
 
         <View className="mt-xs">
-          <Typography variant="body" tone="muted" className="text-center">
+          <Typography
+            variant="body"
+            tone="muted"
+            className="text-center"
+          >
             İçeriklere ulaşırken bir sorun oluştu. Lütfen tekrar dene.
           </Typography>
         </View>
@@ -157,18 +201,20 @@ export default function ExploreScreen() {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
-      <View>
-        <Typography variant="h1">Keşfet</Typography>
-
-        <View className="mt-xs">
-          <Typography variant="body" tone="muted">
-            Sana uygun hareketi ve pratiği keşfet.
-          </Typography>
-        </View>
+      {/* Page Introduction */}
+      <View className="mb-sm">
+        <Typography variant="body">
+          Bugün nasıl hareket etmek istersin?
+        </Typography>
       </View>
 
-      <View className="mt-xl flex-row items-center rounded-lg border border-border bg-surface px-md">
-        <Ionicons name="search-outline" size={20} color={colors.textMuted} />
+      {/* Search */}
+      <View className="mt-md flex-row items-center rounded-lg border border-border bg-surface px-md">
+        <Ionicons
+          name="search-outline"
+          size={20}
+          color={colors.textMuted}
+        />
 
         <TextInput
           className="ml-sm flex-1 py-md text-base text-text"
@@ -187,11 +233,16 @@ export default function ExploreScreen() {
             accessibilityRole="button"
             accessibilityLabel="Aramayı temizle"
           >
-            <Ionicons name="close-circle" size={20} color={colors.textMuted} />
+            <Ionicons
+              name="close-circle"
+              size={20}
+              color={colors.textMuted}
+            />
           </Pressable>
         ) : null}
       </View>
 
+      {/* Discipline Filters */}
       <ScrollView
         horizontal
         className="mt-lg"
@@ -209,13 +260,15 @@ export default function ExploreScreen() {
               accessibilityState={{ selected: isSelected }}
               className={[
                 'rounded-full border px-lg py-sm',
-                isSelected ? 'border-primary bg-primary' : 'border-border bg-surface',
+                isSelected
+                  ? 'border-primary bg-primary'
+                  : 'border-border bg-surface',
               ].join(' ')}
             >
               <Typography
                 variant="caption"
                 tone="default"
-                className={isSelected ? 'text-background' : ''}
+                className={isSelected ? 'text-white' : ''}
               >
                 {filter.label}
               </Typography>
@@ -224,9 +277,12 @@ export default function ExploreScreen() {
         })}
       </ScrollView>
 
+      {/* Practice List */}
       <View className="mt-xl">
         <View className="flex-row items-end justify-between">
-          <Typography variant="h2">Pratikler</Typography>
+          <Typography variant="h2">
+            Pratikler
+          </Typography>
 
           <Typography variant="caption" tone="muted">
             {filteredExercises.length} sonuç
@@ -248,24 +304,41 @@ export default function ExploreScreen() {
                 <ExplorePracticeCard
                   key={exercise.id}
                   title={exercise.name}
-                  description={exercise.description ?? 'Açıklama bulunmuyor.'}
+                  description={
+                    exercise.description ??
+                    'Açıklama bulunmuyor.'
+                  }
                   discipline={discipline.slug}
                   disciplineLabel={discipline.name}
-                  duration={getDurationLabel(exercise.durationSeconds)}
-                  level={getDifficultyLabel(exercise.difficulty)}
+                  duration={getDurationLabel(
+                    exercise.durationSeconds,
+                  )}
+                  level={getDifficultyLabel(
+                    exercise.difficulty,
+                  )}
                 />
               );
             })
           ) : (
             <View className="items-center py-2xl">
-              <Ionicons name="search-outline" size={32} color={colors.textMuted} />
+              <Ionicons
+                name="search-outline"
+                size={32}
+                color={colors.textMuted}
+              />
 
               <View className="mt-md">
-                <Typography variant="h3">Sonuç bulunamadı</Typography>
+                <Typography variant="h3">
+                  Sonuç bulunamadı
+                </Typography>
               </View>
 
               <View className="mt-xs">
-                <Typography variant="body" tone="muted" className="text-center">
+                <Typography
+                  variant="body"
+                  tone="muted"
+                  className="text-center"
+                >
                   Farklı bir arama veya disiplin deneyebilirsin.
                 </Typography>
               </View>

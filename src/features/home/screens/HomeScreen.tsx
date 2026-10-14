@@ -1,29 +1,36 @@
+
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
 import { Typography } from '@/components/ui/Typography';
+
 import {
   useDisciplinesQuery,
   useProgramQuery,
   useProgramsQuery,
 } from '@/features/content/queries/content-queries';
+
 import type {
   Discipline,
   Program,
 } from '@/features/content/types/content';
+
 import { ContinuePracticeCard } from '@/features/home/components/ContinuePracticeCard';
-import { DisciplineCard } from '@/features/home/components/DisciplineCard';
+import { DailyGoals } from '@/features/home/components/DailyGoals';
+import { DailyMotivationCard } from '@/features/home/components/DailyMotivationCard';
 import { FeaturedPracticeCard } from '@/features/home/components/FeaturedPracticeCard';
-import {
-  featuredPractice,
-  homeDisciplines,
-} from '@/features/home/data/home-data';
+import { HomeDisciplineCard } from '@/features/home/components/HomeDisciplineCard';
+import { RecommendedProgramCard } from '@/features/home/components/RecommendedProgramCard';
+
+import { featuredPractice } from '@/features/home/data/home-data';
+
 import {
   useActiveUserProgramsQuery,
   useUserProgramExerciseProgressQuery,
 } from '@/features/program-progress/queries/program-progress-queries';
+
 import type { UserProgram } from '@/features/program-progress/types/program-progress';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -41,31 +48,18 @@ function ActiveProgramCard({
   const {
     data: program,
     isLoading: isProgramLoading,
-  } = useProgramQuery(
-    programSummary?.slug,
-  );
+  } = useProgramQuery(programSummary?.slug);
 
   const {
     data: exerciseProgress = [],
     isLoading: isProgressLoading,
-  } = useUserProgramExerciseProgressQuery(
-    userProgram.id,
-  );
+  } = useUserProgramExerciseProgressQuery(userProgram.id);
 
-  if (
-    isProgramLoading ||
-    isProgressLoading
-  ) {
+  if (isProgramLoading || isProgressLoading) {
     return (
-      <Card
-        variant="elevated"
-        padding="lg"
-      >
+      <Card variant="elevated" padding="lg">
         <View className="min-h-24 justify-center">
-          <Typography
-            variant="body"
-            tone="muted"
-          >
+          <Typography variant="body" tone="muted">
             İlerlemen yükleniyor...
           </Typography>
         </View>
@@ -78,33 +72,26 @@ function ActiveProgramCard({
   }
 
   const discipline = disciplines.find(
-    (item) =>
-      item.id === program.disciplineId,
+    (item) => item.id === program.disciplineId,
   );
 
-  const totalExercises =
-    program.exercises.length;
+  const totalExercises = program.exercises.length;
 
-  const completedExercises =
-    exerciseProgress.filter(
-      (item) => item.isCompleted,
-    ).length;
+  const completedExercises = exerciseProgress.filter(
+    (item) => item.isCompleted,
+  ).length;
 
   const progress =
     totalExercises > 0
       ? Math.round(
-          (completedExercises /
-            totalExercises) *
-            100,
+          (completedExercises / totalExercises) * 100,
         )
       : 0;
 
   return (
     <ContinuePracticeCard
       title={program.title}
-      discipline={
-        discipline?.name ?? 'Program'
-      }
+      discipline={discipline?.name ?? 'Program'}
       duration={
         program.durationMinutes
           ? `${program.durationMinutes} dk`
@@ -112,9 +99,7 @@ function ActiveProgramCard({
       }
       progress={progress}
       onPress={() =>
-        router.push(
-          `/program/${program.slug}/session`,
-        )
+        router.push(`/program/${program.slug}/session`)
       }
     />
   );
@@ -127,12 +112,6 @@ export default function HomeScreen() {
 
   const [continueAreaWidth, setContinueAreaWidth] =
     useState(0);
-
-  const primaryDisciplines =
-    homeDisciplines.slice(0, 2);
-
-  const reformer =
-    homeDisciplines[2];
 
   const {
     data: activeUserPrograms = [],
@@ -149,6 +128,9 @@ export default function HomeScreen() {
     isLoading: isDisciplinesLoading,
   } = useDisciplinesQuery();
 
+  // Geçici öneriler: katalogdaki ilk üç program.
+  const recommendedPrograms = programs.slice(0, 3);
+
   const isContinuePracticeLoading =
     isActiveProgramsLoading ||
     isProgramsLoading ||
@@ -161,25 +143,25 @@ export default function HomeScreen() {
       showsVerticalScrollIndicator={false}
     >
       {/* Welcome */}
-      <View className="gap-xs">
-        <Typography
-          variant="body"
-          tone="muted"
-        >
-          Merhaba
-        </Typography>
-
-        <Typography variant="h1">
-          Bugün kendin için hareket et.
+      <View className="mb-sm">
+        <Typography variant="h2">
+          Merhaba 🌿
         </Typography>
 
         <Typography
-          variant="body"
+          variant="bodySmall"
           tone="muted"
+          className="mt-xs"
         >
-          Bedenine ve enerjine uygun pratiği seç.
+          Bugün kendine iyi gelecek bir şey yap.
         </Typography>
       </View>
+
+      {/* Daily Motivation Carousel */}
+      <DailyMotivationCard />
+
+      {/* Daily Goals */}
+      <DailyGoals />
 
       {/* Continue Practice */}
       <View className="mt-xl">
@@ -189,10 +171,7 @@ export default function HomeScreen() {
           </Typography>
 
           {activeUserPrograms.length > 1 && (
-            <Typography
-              variant="caption"
-              tone="muted"
-            >
+            <Typography variant="caption" tone="muted">
               {activeUserPrograms.length} program
             </Typography>
           )}
@@ -207,15 +186,9 @@ export default function HomeScreen() {
           }}
         >
           {isContinuePracticeLoading ? (
-            <Card
-              variant="elevated"
-              padding="lg"
-            >
+            <Card variant="elevated" padding="lg">
               <View className="min-h-24 justify-center">
-                <Typography
-                  variant="body"
-                  tone="muted"
-                >
+                <Typography variant="body" tone="muted">
                   İlerlemen yükleniyor...
                 </Typography>
               </View>
@@ -229,41 +202,28 @@ export default function HomeScreen() {
               showsHorizontalScrollIndicator={false}
               decelerationRate="fast"
             >
-              {activeUserPrograms.map(
-                (userProgram) => {
-                  const programSummary =
-                    programs.find(
-                      (program) =>
-                        program.id ===
-                        userProgram.programId,
-                    );
+              {activeUserPrograms.map((userProgram) => {
+                const programSummary = programs.find(
+                  (program) =>
+                    program.id === userProgram.programId,
+                );
 
-                  return (
-                    <View
-                      key={userProgram.id}
-                      style={{
-                        width: continueAreaWidth,
-                      }}
-                    >
-                      <ActiveProgramCard
-                        userProgram={userProgram}
-                        programSummary={
-                          programSummary
-                        }
-                        disciplines={
-                          disciplines
-                        }
-                      />
-                    </View>
-                  );
-                },
-              )}
+                return (
+                  <View
+                    key={userProgram.id}
+                    style={{ width: continueAreaWidth }}
+                  >
+                    <ActiveProgramCard
+                      userProgram={userProgram}
+                      programSummary={programSummary}
+                      disciplines={disciplines}
+                    />
+                  </View>
+                );
+              })}
             </ScrollView>
           ) : (
-            <Card
-              variant="elevated"
-              padding="lg"
-            >
+            <Card variant="elevated" padding="lg">
               <View className="min-h-24 justify-center">
                 <Typography variant="h3">
                   Henüz devam eden bir programın yok.
@@ -274,8 +234,8 @@ export default function HomeScreen() {
                   tone="muted"
                   className="mt-xs"
                 >
-                  Programlar bölümünden bir program
-                  seçerek başlayabilirsin.
+                  Programlar bölümünden bir program seçerek
+                  başlayabilirsin.
                 </Typography>
               </View>
             </Card>
@@ -283,44 +243,98 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Disciplines */}
+      {/* Recommended Programs */}
       <View className="mt-xl">
         <Typography variant="h2">
-          Disiplinler
+          Senin İçin Öneriler
         </Typography>
 
-        <View className="mt-md gap-md">
-          <View className="flex-row gap-md">
-            {primaryDisciplines.map(
-              (discipline) => (
-                <DisciplineCard
-                  key={discipline.key}
-                  className="flex-1"
-                  discipline={
-                    discipline.key
+        {isProgramsLoading || isDisciplinesLoading ? (
+          <Typography
+            variant="bodySmall"
+            tone="muted"
+            className="mt-md"
+          >
+            Programlar yükleniyor...
+          </Typography>
+        ) : recommendedPrograms.length > 0 ? (
+          <ScrollView
+            horizontal
+            nestedScrollEnabled
+            showsHorizontalScrollIndicator={false}
+            contentContainerClassName="gap-md py-sm"
+            className="mt-md"
+          >
+            {recommendedPrograms.map((program) => {
+              const discipline = disciplines.find(
+                (item) => item.id === program.disciplineId,
+              );
+
+              return (
+                <RecommendedProgramCard
+                  key={program.id}
+                  title={program.title}
+                  discipline={discipline?.name ?? 'Program'}
+                  level="Tüm seviyeler"
+                  duration={
+                    program.durationMinutes
+                      ? `${program.durationMinutes} dk`
+                      : 'Süre belirtilmedi'
                   }
-                  title={
-                    discipline.title
-                  }
-                  description={
-                    discipline.description
-                  }
-                  icon={
-                    discipline.icon
+                  image={require('../../../../assets/images/home/welcome-character.png')}
+                  onPress={() =>
+                    router.push(`/program/${program.slug}`)
                   }
                 />
-              ),
-            )}
-          </View>
+              );
+            })}
+          </ScrollView>
+        ) : (
+          <Typography
+            variant="bodySmall"
+            tone="muted"
+            className="mt-md"
+          >
+            Henüz önerilebilecek program bulunmuyor.
+          </Typography>
+        )}
+      </View>
 
-          <DisciplineCard
-            className="w-full"
-            discipline={reformer.key}
-            title={reformer.title}
-            description={
-              reformer.description
-            }
-            icon={reformer.icon}
+      {/* Disciplines */}
+      <View className="mt-xl">
+        <View className="flex-row items-center justify-between">
+          <Typography variant="h2">
+            Disiplinler
+          </Typography>
+
+          <Typography variant="caption" tone="muted">
+            Tümünü gör ›
+          </Typography>
+        </View>
+
+        <View className="mt-md flex-row gap-sm">
+          <HomeDisciplineCard
+            title="Yoga"
+            description="Zihin ve beden dengesi"
+            icon="flower-outline"
+            backgroundColor="#E4EBDF"
+            accentColor="#779778"
+          />
+
+          <HomeDisciplineCard
+            title="Pilates"
+            description="Güçlü ve esnek bir beden"
+            icon="leaf-outline"
+            backgroundColor="#F5E3D8"
+            accentColor="#BF917C"
+          />
+
+          <HomeDisciplineCard
+            title="Reformer"
+            description="Derinlemesine güçlenme"
+            icon="barbell-outline"
+            backgroundColor="#EBE2F0"
+            accentColor="#9075AA"
           />
         </View>
       </View>
@@ -333,18 +347,10 @@ export default function HomeScreen() {
 
         <View className="mt-md">
           <FeaturedPracticeCard
-            title={
-              featuredPractice.title
-            }
-            description={
-              featuredPractice.description
-            }
-            duration={
-              featuredPractice.duration
-            }
-            level={
-              featuredPractice.level
-            }
+            title={featuredPractice.title}
+            description={featuredPractice.description}
+            duration={featuredPractice.duration}
+            level={featuredPractice.level}
           />
         </View>
       </View>
