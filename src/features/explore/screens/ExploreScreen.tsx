@@ -1,5 +1,6 @@
 
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter, type Href } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -10,15 +11,23 @@ import {
 } from 'react-native';
 
 import { Typography } from '@/components/ui/Typography';
+
 import {
   useDisciplinesQuery,
   useExerciseCategoriesQuery,
   useExercisesQuery,
 } from '@/features/content/queries/content-queries';
+
 import type {
   DisciplineSlug,
   Exercise,
 } from '@/features/content/types/content';
+
+import {
+  DisciplineCards,
+  type ExploreDiscipline,
+} from '@/features/explore/components/DisciplineCards';
+
 import { ExplorePracticeCard } from '@/features/explore/components/ExplorePracticeCard';
 import { FeaturedPracticeCard } from '@/features/home/components/FeaturedPracticeCard';
 import { useTheme } from '@/providers/theme-provider';
@@ -41,7 +50,10 @@ const exploreFilters: {
   { key: 'strength', label: 'Güç' },
 ];
 
-const flexibilityCategorySlugs = ['flexibility', 'mobility'];
+const flexibilityCategorySlugs = [
+  'flexibility',
+  'mobility',
+];
 
 const strengthCategorySlugs = [
   'core',
@@ -54,10 +66,13 @@ function getDifficultyLabel(difficulty: string) {
   switch (difficulty) {
     case 'beginner':
       return 'Başlangıç';
+
     case 'intermediate':
       return 'Orta';
+
     case 'advanced':
       return 'İleri';
+
     default:
       return difficulty;
   }
@@ -95,21 +110,26 @@ function getDailyFeaturedExercise(
   ].join('-');
 
   const dateSeed = Array.from(dateKey).reduce(
-    (total, character) => total + character.charCodeAt(0),
+    (total, character) =>
+      total + character.charCodeAt(0),
     0,
   );
 
-  return sortedExercises[dateSeed % sortedExercises.length];
+  return sortedExercises[
+    dateSeed % sortedExercises.length
+  ];
 }
 
 export default function ExploreScreen() {
   const { colors } = useTheme();
+  const router = useRouter();
 
   const [selectedFilter, setSelectedFilter] =
     useState<ExploreFilterKey>('all');
 
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Supabase disiplin verileri
   const disciplinesQuery = useDisciplinesQuery();
 
   const yogaDiscipline = disciplinesQuery.data?.find(
@@ -124,7 +144,9 @@ export default function ExploreScreen() {
     (discipline) => discipline.slug === 'reformer',
   );
 
-  const yogaExercisesQuery = useExercisesQuery(yogaDiscipline?.id);
+  // Disipline göre egzersiz sorguları
+  const yogaExercisesQuery =
+    useExercisesQuery(yogaDiscipline?.id);
 
   const pilatesExercisesQuery =
     useExercisesQuery(pilatesDiscipline?.id);
@@ -132,6 +154,7 @@ export default function ExploreScreen() {
   const reformerExercisesQuery =
     useExercisesQuery(reformerDiscipline?.id);
 
+  // Egzersiz kategorileri
   const yogaCategoriesQuery =
     useExerciseCategoriesQuery(yogaDiscipline?.id);
 
@@ -141,6 +164,7 @@ export default function ExploreScreen() {
   const reformerCategoriesQuery =
     useExerciseCategoriesQuery(reformerDiscipline?.id);
 
+  // Tüm egzersizleri birleştir
   const exercises = useMemo(
     () => [
       ...(yogaExercisesQuery.data ?? []),
@@ -154,6 +178,7 @@ export default function ExploreScreen() {
     ],
   );
 
+  // Tüm kategorileri birleştir
   const categories = useMemo(
     () => [
       ...(yogaCategoriesQuery.data ?? []),
@@ -177,6 +202,7 @@ export default function ExploreScreen() {
     );
   }, [categories]);
 
+  // Arama ve hızlı filtreleme
   const filteredExercises = useMemo(() => {
     const normalizedQuery = searchQuery
       .trim()
@@ -244,6 +270,7 @@ export default function ExploreScreen() {
     selectedFilter,
   ]);
 
+  // Günlük öne çıkan egzersiz
   const featuredExercise = useMemo(() => {
     if (filteredExercises.length > 0) {
       return getDailyFeaturedExercise(filteredExercises);
@@ -252,6 +279,7 @@ export default function ExploreScreen() {
     return getDailyFeaturedExercise(exercises);
   }, [exercises, filteredExercises]);
 
+  // Yükleme durumu
   const isLoading =
     disciplinesQuery.isLoading ||
     yogaExercisesQuery.isLoading ||
@@ -261,6 +289,7 @@ export default function ExploreScreen() {
     pilatesCategoriesQuery.isLoading ||
     reformerCategoriesQuery.isLoading;
 
+  // Hata durumu
   const isError =
     disciplinesQuery.isError ||
     yogaExercisesQuery.isError ||
@@ -273,7 +302,10 @@ export default function ExploreScreen() {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background px-lg">
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator
+          size="large"
+          color={colors.primary}
+        />
 
         <View className="mt-md">
           <Typography variant="body" tone="muted">
@@ -320,14 +352,14 @@ export default function ExploreScreen() {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
-      {/* Introduction */}
+      {/* INTRODUCTION */}
       <View>
         <Typography variant="bodySmall" tone="muted">
           Kendine iyi gelecek pratikleri keşfet.
         </Typography>
       </View>
 
-      {/* Search */}
+      {/* SEARCH */}
       <View className="mt-lg flex-row items-center gap-sm">
         <View className="flex-1 flex-row items-center rounded-full border border-border bg-surface px-md">
           <Ionicons
@@ -375,7 +407,7 @@ export default function ExploreScreen() {
         </Pressable>
       </View>
 
-      {/* Filter Chips */}
+      {/* FILTER CHIPS */}
       <ScrollView
         horizontal
         className="mt-md"
@@ -383,14 +415,19 @@ export default function ExploreScreen() {
         showsHorizontalScrollIndicator={false}
       >
         {exploreFilters.map((filter) => {
-          const isSelected = selectedFilter === filter.key;
+          const isSelected =
+            selectedFilter === filter.key;
 
           return (
             <Pressable
               key={filter.key}
-              onPress={() => setSelectedFilter(filter.key)}
+              onPress={() =>
+                setSelectedFilter(filter.key)
+              }
               accessibilityRole="button"
-              accessibilityState={{ selected: isSelected }}
+              accessibilityState={{
+                selected: isSelected,
+              }}
               className={[
                 'rounded-full border px-lg py-sm',
                 isSelected
@@ -400,7 +437,9 @@ export default function ExploreScreen() {
             >
               <Typography
                 variant="bodySmall"
-                className={isSelected ? 'text-white' : ''}
+                className={
+                  isSelected ? 'text-white' : ''
+                }
               >
                 {filter.label}
               </Typography>
@@ -409,7 +448,7 @@ export default function ExploreScreen() {
         })}
       </ScrollView>
 
-      {/* Featured Hero Card */}
+      {/* FEATURED HERO CARD */}
       {featuredExercise ? (
         <View
           className="mt-lg"
@@ -433,7 +472,25 @@ export default function ExploreScreen() {
         </View>
       ) : null}
 
-      {/* Practice List */}
+      {/* DISCIPLINES */}
+      <View
+        className="mt-lg"
+        style={{
+          width: '100%',
+          alignSelf: 'stretch',
+          minWidth: 0,
+        }}
+      >
+        <DisciplineCards
+          onSelect={(discipline: ExploreDiscipline) => {
+            router.push(
+              `/explore/discipline/${discipline}` as Href,
+            );
+          }}
+        />
+      </View>
+
+      {/* PRACTICE LIST */}
       <View className="mt-2xl">
         <View className="flex-row items-end justify-between">
           <Typography variant="h2">
@@ -448,9 +505,11 @@ export default function ExploreScreen() {
         <View className="mt-md gap-md">
           {filteredExercises.length > 0 ? (
             filteredExercises.map((exercise) => {
-              const discipline = disciplinesQuery.data?.find(
-                (item) => item.id === exercise.disciplineId,
-              );
+              const discipline =
+                disciplinesQuery.data?.find(
+                  (item) =>
+                    item.id === exercise.disciplineId,
+                );
 
               if (!discipline) {
                 return null;
