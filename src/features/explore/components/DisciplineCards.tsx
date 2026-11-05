@@ -21,7 +21,7 @@ type Props = {
 };
 
 const CARD_GAP = 8;
-const CARD_HEIGHT = 145;
+const CARD_HEIGHT = 130;
 
 const items = [
   {

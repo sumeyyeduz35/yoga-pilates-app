@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 
 import type {
@@ -99,7 +100,9 @@ function mapDiscipline(row: DisciplineRow): Discipline {
   };
 }
 
-function mapExerciseCategory(row: ExerciseCategoryRow): ExerciseCategory {
+function mapExerciseCategory(
+  row: ExerciseCategoryRow,
+): ExerciseCategory {
   return {
     id: row.id,
     disciplineId: row.discipline_id,
@@ -142,11 +145,17 @@ function mapProgram(row: ProgramRow): Program {
   };
 }
 
-function getJoinedExercise(value: ExerciseRow | ExerciseRow[]): ExerciseRow {
-  const exercise = Array.isArray(value) ? value[0] : value;
+function getJoinedExercise(
+  value: ExerciseRow | ExerciseRow[],
+): ExerciseRow {
+  const exercise = Array.isArray(value)
+    ? value[0]
+    : value;
 
   if (!exercise) {
-    throw new Error('Program exercise is missing its exercise relation.');
+    throw new Error(
+      'Program exercise is missing its exercise relation.',
+    );
   }
 
   return exercise;
@@ -155,7 +164,9 @@ function getJoinedExercise(value: ExerciseRow | ExerciseRow[]): ExerciseRow {
 export async function getDisciplines(): Promise<Discipline[]> {
   const { data, error } = await supabase
     .from('disciplines')
-    .select('id, name, slug, description, is_active, sort_order')
+    .select(
+      'id, name, slug, description, is_active, sort_order',
+    )
     .eq('is_active', true)
     .order('sort_order');
 
@@ -166,10 +177,14 @@ export async function getDisciplines(): Promise<Discipline[]> {
   return (data as DisciplineRow[]).map(mapDiscipline);
 }
 
-export async function getExerciseCategories(disciplineId: string): Promise<ExerciseCategory[]> {
+export async function getExerciseCategories(
+  disciplineId: string,
+): Promise<ExerciseCategory[]> {
   const { data, error } = await supabase
     .from('exercise_categories')
-    .select('id, discipline_id, name, slug, description, sort_order, is_active')
+    .select(
+      'id, discipline_id, name, slug, description, sort_order, is_active',
+    )
     .eq('discipline_id', disciplineId)
     .eq('is_active', true)
     .order('sort_order');
@@ -178,10 +193,14 @@ export async function getExerciseCategories(disciplineId: string): Promise<Exerc
     throw error;
   }
 
-  return (data as ExerciseCategoryRow[]).map(mapExerciseCategory);
+  return (data as ExerciseCategoryRow[]).map(
+    mapExerciseCategory,
+  );
 }
 
-export async function getExercises(disciplineId: string): Promise<Exercise[]> {
+export async function getExercises(
+  disciplineId: string,
+): Promise<Exercise[]> {
   const { data, error } = await supabase
     .from('exercises')
     .select(
@@ -198,7 +217,9 @@ export async function getExercises(disciplineId: string): Promise<Exercise[]> {
   return (data as ExerciseRow[]).map(mapExercise);
 }
 
-export async function getPrograms(disciplineId?: string): Promise<Program[]> {
+export async function getPrograms(
+  disciplineId?: string,
+): Promise<Program[]> {
   let query = supabase
     .from('programs')
     .select(
@@ -220,8 +241,13 @@ export async function getPrograms(disciplineId?: string): Promise<Program[]> {
   return (data as ProgramRow[]).map(mapProgram);
 }
 
-export async function getProgramBySlug(slug: string): Promise<ProgramWithExercises | null> {
-  const { data: programData, error: programError } = await supabase
+export async function getProgramBySlug(
+  slug: string,
+): Promise<ProgramWithExercises | null> {
+  const {
+    data: programData,
+    error: programError,
+  } = await supabase
     .from('programs')
     .select(
       'id, discipline_id, title, slug, description, difficulty, duration_minutes, cover_image_url, is_active',
@@ -238,9 +264,14 @@ export async function getProgramBySlug(slug: string): Promise<ProgramWithExercis
     return null;
   }
 
-  const program = mapProgram(programData as ProgramRow);
+  const program = mapProgram(
+    programData as ProgramRow,
+  );
 
-  const { data: exerciseData, error: exerciseError } = await supabase
+  const {
+    data: exerciseData,
+    error: exerciseError,
+  } = await supabase
     .from('program_exercises')
     .select(
       `
@@ -284,11 +315,37 @@ export async function getProgramBySlug(slug: string): Promise<ProgramWithExercis
     durationSeconds: row.duration_seconds,
     repetitions: row.repetitions,
     restSeconds: row.rest_seconds,
-    exercise: mapExercise(getJoinedExercise(row.exercise)),
+    exercise: mapExercise(
+      getJoinedExercise(row.exercise),
+    ),
   }));
 
   return {
     ...program,
     exercises,
   };
+}
+
+// Tek bir aktif egzersizi slug bilgisine göre getirir.
+export async function getExerciseBySlug(
+  slug: string,
+): Promise<Exercise | null> {
+  const { data, error } = await supabase
+    .from('exercises')
+    .select(
+      'id, discipline_id, category_id, name, slug, description, instructions, difficulty, duration_seconds, image_url, video_url, is_active',
+    )
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return mapExercise(data as ExerciseRow);
 }

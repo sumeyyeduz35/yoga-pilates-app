@@ -1154,9 +1154,10 @@ export default function ProgramSessionScreen() {
       }
     >
       <ExerciseVisual
-        exerciseSlug={
-          currentExercise
-            ?.exerciseSlug
+        key={currentExercise?.id ?? 'no-exercise'}
+          exerciseSlug={
+            currentExercise
+              ?.exerciseSlug
         }
         isPaused={isPaused}
       />

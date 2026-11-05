@@ -1,11 +1,20 @@
+
 const { defineConfig } = require('eslint/config');
 const expoConfig = require('eslint-config-expo/flat');
 const eslintConfigPrettier = require('eslint-config-prettier/flat');
 
 module.exports = defineConfig([
+  {
+    ignores: ['dist/**', '.expo/**'],
+  },
   expoConfig,
   {
-    ignores: ['dist/*'],
+    files: [
+      'src/features/exercise-guidance/components/RiveExercisePlayer.tsx',
+    ],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
   },
   eslintConfigPrettier,
 ]);

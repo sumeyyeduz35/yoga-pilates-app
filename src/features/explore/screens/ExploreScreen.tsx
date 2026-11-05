@@ -1,4 +1,3 @@
-
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, type Href } from 'expo-router';
 import { useMemo, useState } from 'react';
@@ -28,9 +27,17 @@ import {
   type ExploreDiscipline,
 } from '@/features/explore/components/DisciplineCards';
 
-import { ExplorePracticeCard } from '@/features/explore/components/ExplorePracticeCard';
+import { ExploreCollectionsSection } from '@/features/explore/components/ExploreCollectionsSection';
+import { ExploreGoalCards } from '@/features/explore/components/ExploreGoalCards';
+import { RecommendedExercisesSection } from '@/features/explore/components/RecommendedExercisesSection';
 import { FeaturedPracticeCard } from '@/features/home/components/FeaturedPracticeCard';
 import { useTheme } from '@/providers/theme-provider';
+
+import { useExerciseCollectionsQuery } from '@/features/explore/queries/collection-queries';
+import { getRecommendedExercises } from '@/features/explore/services/recommendation-service';
+import { useUserPreferencesQuery } from '@/features/onboarding/queries/onboarding-queries';
+import { useAuth } from '@/providers/auth-provider';
+
 
 type ExploreFilterKey =
   | 'all'
@@ -124,6 +131,13 @@ export default function ExploreScreen() {
   const { colors } = useTheme();
   const router = useRouter();
 
+  // Aktif kullanıcı ve onboarding tercihleri
+  const { user } = useAuth();
+
+  const userPreferencesQuery = useUserPreferencesQuery(
+    user?.id,
+  );
+
   const [selectedFilter, setSelectedFilter] =
     useState<ExploreFilterKey>('all');
 
@@ -131,6 +145,7 @@ export default function ExploreScreen() {
 
   // Supabase disiplin verileri
   const disciplinesQuery = useDisciplinesQuery();
+  const collectionsQuery = useExerciseCollectionsQuery();
 
   const yogaDiscipline = disciplinesQuery.data?.find(
     (discipline) => discipline.slug === 'yoga',
@@ -191,6 +206,29 @@ export default function ExploreScreen() {
       reformerCategoriesQuery.data,
     ],
   );
+
+  // Kullanıcının onboarding tercihlerine göre en fazla 8 öneri.
+  const recommendedExercises = useMemo(() => {
+    const preferences = userPreferencesQuery.data;
+    const disciplines = disciplinesQuery.data;
+
+    if (!preferences || !disciplines) {
+      return [];
+    }
+
+    return getRecommendedExercises({
+      preferences,
+      exercises,
+      disciplines,
+      categories,
+      limit: 8,
+    });
+  }, [
+    userPreferencesQuery.data,
+    disciplinesQuery.data,
+    exercises,
+    categories,
+  ]);
 
   const categorySlugById = useMemo(() => {
     return categories.reduce<Record<string, string>>(
@@ -269,6 +307,14 @@ export default function ExploreScreen() {
     searchQuery,
     selectedFilter,
   ]);
+
+  // Arama ve filtreler, Tüm Pratikler yerine öneri kartlarını filtreler.
+  const visibleRecommendations = useMemo(() => {
+    const visibleIds = new Set(filteredExercises.map((item) => item.id));
+    return recommendedExercises.filter(({ exercise }) =>
+      visibleIds.has(exercise.id),
+    );
+  }, [filteredExercises, recommendedExercises]);
 
   // Günlük öne çıkan egzersiz
   const featuredExercise = useMemo(() => {
@@ -490,77 +536,62 @@ export default function ExploreScreen() {
         />
       </View>
 
-      {/* PRACTICE LIST */}
-      <View className="mt-2xl">
-        <View className="flex-row items-end justify-between">
-          <Typography variant="h2">
-            Tüm Pratikler
-          </Typography>
-
-          <Typography variant="caption" tone="muted">
-            {filteredExercises.length} sonuç
+      {/* PERSONALIZED RECOMMENDATIONS */}
+      {visibleRecommendations.length > 0 ? (
+        <View
+          style={{ marginHorizontal: -12, marginTop: 0 }}
+        >
+          <RecommendedExercisesSection
+            recommendations={visibleRecommendations}
+            onExercisePress={(recommendation) => {
+              router.push({
+                pathname: '/exercise/[slug]',
+                params: {
+                  slug: recommendation.exercise.slug,
+                },
+              });
+            }}
+          />
+        </View>
+      ) : recommendedExercises.length > 0 ? (
+        <View className="mt-lg items-center py-lg">
+          <Typography variant="bodySmall" tone="muted">
+            Bu arama veya filtreyle eşleşen öneri bulunamadı.
           </Typography>
         </View>
+      ) : null}
 
-        <View className="mt-md gap-md">
-          {filteredExercises.length > 0 ? (
-            filteredExercises.map((exercise) => {
-              const discipline =
-                disciplinesQuery.data?.find(
-                  (item) =>
-                    item.id === exercise.disciplineId,
-                );
-
-              if (!discipline) {
-                return null;
-              }
-
-              return (
-                <ExplorePracticeCard
-                  key={exercise.id}
-                  title={exercise.name}
-                  description={
-                    exercise.description ??
-                    'Açıklama bulunmuyor.'
-                  }
-                  discipline={discipline.slug}
-                  disciplineLabel={discipline.name}
-                  duration={getDurationLabel(
-                    exercise.durationSeconds,
-                  )}
-                  level={getDifficultyLabel(
-                    exercise.difficulty,
-                  )}
-                />
-              );
-            })
-          ) : (
-            <View className="items-center py-2xl">
-              <Ionicons
-                name="search-outline"
-                size={32}
-                color={colors.textMuted}
-              />
-
-              <View className="mt-md">
-                <Typography variant="h3">
-                  Sonuç bulunamadı
-                </Typography>
-              </View>
-
-              <View className="mt-xs">
-                <Typography
-                  variant="body"
-                  tone="muted"
-                  className="text-center"
-                >
-                  Farklı bir arama veya filtre deneyebilirsin.
-                </Typography>
-              </View>
-            </View>
-          )}
-        </View>
+      {/* EXPLORE BY GOAL */}
+      <View
+        className="mt-lg"
+        style={{ marginHorizontal: -12 }}
+      >
+        <ExploreGoalCards
+          onGoalPress={(goal) => {
+            router.push({
+              pathname: '/explore/goal/[goal]',
+              params: {
+                goal: goal.key,
+              },
+            });
+          }}
+        />
       </View>
+
+      {/* CURATED EXERCISE COLLECTIONS */}
+      {collectionsQuery.data && collectionsQuery.data.length > 0 ? (
+        <View className="mt-lg" style={{ marginHorizontal: -12 }}>
+          <ExploreCollectionsSection
+            collections={collectionsQuery.data}
+            onCollectionPress={(collection) => {
+              router.push({
+                pathname: '/explore/collection/[slug]',
+                params: { slug: collection.slug },
+              });
+            }}
+          />
+        </View>
+      ) : null}
     </ScrollView>
   );
 }

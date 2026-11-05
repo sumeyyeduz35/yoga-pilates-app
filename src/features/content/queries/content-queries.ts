@@ -1,7 +1,9 @@
+
 import { useQuery } from '@tanstack/react-query';
 
 import {
   getDisciplines,
+  getExerciseBySlug,
   getExerciseCategories,
   getExercises,
   getProgramBySlug,
@@ -11,18 +13,43 @@ import {
 export const contentQueryKeys = {
   all: ['content'] as const,
 
-  disciplines: () => [...contentQueryKeys.all, 'disciplines'] as const,
+  disciplines: () =>
+    [...contentQueryKeys.all, 'disciplines'] as const,
 
   categories: (disciplineId: string) =>
-    [...contentQueryKeys.all, 'categories', disciplineId] as const,
+    [
+      ...contentQueryKeys.all,
+      'categories',
+      disciplineId,
+    ] as const,
 
   exercises: (disciplineId: string) =>
-    [...contentQueryKeys.all, 'exercises', disciplineId] as const,
+    [
+      ...contentQueryKeys.all,
+      'exercises',
+      disciplineId,
+    ] as const,
+
+  exercise: (slug: string) =>
+    [
+      ...contentQueryKeys.all,
+      'exercise',
+      slug,
+    ] as const,
 
   programs: (disciplineId?: string) =>
-    [...contentQueryKeys.all, 'programs', disciplineId ?? 'all'] as const,
+    [
+      ...contentQueryKeys.all,
+      'programs',
+      disciplineId ?? 'all',
+    ] as const,
 
-  program: (slug: string) => [...contentQueryKeys.all, 'program', slug] as const,
+  program: (slug: string) =>
+    [
+      ...contentQueryKeys.all,
+      'program',
+      slug,
+    ] as const,
 };
 
 export function useDisciplinesQuery() {
@@ -32,32 +59,62 @@ export function useDisciplinesQuery() {
   });
 }
 
-export function useExerciseCategoriesQuery(disciplineId: string | undefined) {
+export function useExerciseCategoriesQuery(
+  disciplineId: string | undefined,
+) {
   return useQuery({
-    queryKey: contentQueryKeys.categories(disciplineId ?? ''),
-    queryFn: () => getExerciseCategories(disciplineId!),
+    queryKey: contentQueryKeys.categories(
+      disciplineId ?? '',
+    ),
+    queryFn: () =>
+      getExerciseCategories(disciplineId!),
     enabled: Boolean(disciplineId),
   });
 }
 
-export function useExercisesQuery(disciplineId: string | undefined) {
+export function useExercisesQuery(
+  disciplineId: string | undefined,
+) {
   return useQuery({
-    queryKey: contentQueryKeys.exercises(disciplineId ?? ''),
+    queryKey: contentQueryKeys.exercises(
+      disciplineId ?? '',
+    ),
     queryFn: () => getExercises(disciplineId!),
     enabled: Boolean(disciplineId),
   });
 }
 
-export function useProgramsQuery(disciplineId?: string) {
+// Tek bir egzersizi slug bilgisine göre getirir.
+export function useExerciseBySlugQuery(
+  slug: string | undefined,
+) {
   return useQuery({
-    queryKey: contentQueryKeys.programs(disciplineId),
+    queryKey: contentQueryKeys.exercise(
+      slug ?? '',
+    ),
+    queryFn: () => getExerciseBySlug(slug!),
+    enabled: Boolean(slug),
+  });
+}
+
+export function useProgramsQuery(
+  disciplineId?: string,
+) {
+  return useQuery({
+    queryKey: contentQueryKeys.programs(
+      disciplineId,
+    ),
     queryFn: () => getPrograms(disciplineId),
   });
 }
 
-export function useProgramQuery(slug: string | undefined) {
+export function useProgramQuery(
+  slug: string | undefined,
+) {
   return useQuery({
-    queryKey: contentQueryKeys.program(slug ?? ''),
+    queryKey: contentQueryKeys.program(
+      slug ?? '',
+    ),
     queryFn: () => getProgramBySlug(slug!),
     enabled: Boolean(slug),
   });

@@ -40,7 +40,6 @@ export function RiveExercisePlayer({
 
   useEffect(() => {
     if (error) {
-      setHasError(true);
       onLoadError?.();
     }
   }, [
@@ -64,7 +63,7 @@ export function RiveExercisePlayer({
     riveViewRef,
   ]);
 
-  if (hasError) {
+  if (hasError || error) {
     return (
       <View className="h-full w-full items-center justify-center">
         <Typography
