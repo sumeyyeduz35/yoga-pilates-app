@@ -2,18 +2,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRef, useState } from 'react';
 import {
-    Dimensions,
-    Image,
-    NativeScrollEvent,
-    NativeSyntheticEvent,
-    ScrollView,
-    View,
+  Image,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollView,
+  View,
 } from 'react-native';
 
 import { Typography } from '@/components/ui/Typography';
 import { getDailyMotivation } from '@/features/home/data/daily-motivations';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
 
 type MotivationSlide = {
   id: string;

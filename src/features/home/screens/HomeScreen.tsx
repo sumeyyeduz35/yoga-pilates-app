@@ -20,11 +20,7 @@ import type {
 import { ContinuePracticeCard } from '@/features/home/components/ContinuePracticeCard';
 import { DailyGoals } from '@/features/home/components/DailyGoals';
 import { DailyMotivationCard } from '@/features/home/components/DailyMotivationCard';
-import { FeaturedPracticeCard } from '@/features/home/components/FeaturedPracticeCard';
-import { HomeDisciplineCard } from '@/features/home/components/HomeDisciplineCard';
 import { RecommendedProgramCard } from '@/features/home/components/RecommendedProgramCard';
-
-import { featuredPractice } from '@/features/home/data/home-data';
 
 import {
   useActiveUserProgramsQuery,
@@ -298,61 +294,6 @@ export default function HomeScreen() {
             Henüz önerilebilecek program bulunmuyor.
           </Typography>
         )}
-      </View>
-
-      {/* Disciplines */}
-      <View className="mt-xl">
-        <View className="flex-row items-center justify-between">
-          <Typography variant="h2">
-            Disiplinler
-          </Typography>
-
-          <Typography variant="caption" tone="muted">
-            Tümünü gör ›
-          </Typography>
-        </View>
-
-        <View className="mt-md flex-row gap-sm">
-          <HomeDisciplineCard
-            title="Yoga"
-            description="Zihin ve beden dengesi"
-            icon="flower-outline"
-            backgroundColor="#E4EBDF"
-            accentColor="#779778"
-          />
-
-          <HomeDisciplineCard
-            title="Pilates"
-            description="Güçlü ve esnek bir beden"
-            icon="leaf-outline"
-            backgroundColor="#F5E3D8"
-            accentColor="#BF917C"
-          />
-
-          <HomeDisciplineCard
-            title="Reformer"
-            description="Derinlemesine güçlenme"
-            icon="barbell-outline"
-            backgroundColor="#EBE2F0"
-            accentColor="#9075AA"
-          />
-        </View>
-      </View>
-
-      {/* Featured Practice */}
-      <View className="mt-xl">
-        <Typography variant="h2">
-          Bugünün pratiği
-        </Typography>
-
-        <View className="mt-md">
-          <FeaturedPracticeCard
-            title={featuredPractice.title}
-            description={featuredPractice.description}
-            duration={featuredPractice.duration}
-            level={featuredPractice.level}
-          />
-        </View>
       </View>
     </ScrollView>
   );

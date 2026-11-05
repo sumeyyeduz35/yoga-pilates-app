@@ -40,11 +40,6 @@ export function ExerciseVisual({
   const scale = useSharedValue(1);
   const translateY = useSharedValue(0);
 
-  useEffect(() => {
-    setRiveFailed(false);
-  }, [
-    exerciseSlug,
-  ]);
 
   useEffect(() => {
     if (isPaused) {

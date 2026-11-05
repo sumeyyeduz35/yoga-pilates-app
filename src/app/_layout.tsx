@@ -86,6 +86,14 @@ function AppNavigator() {
           }}
         />
 
+        {/* Egzersiz detay ekranı */}
+        <Stack.Screen
+          name="exercise/[slug]"
+          options={{
+            headerShown: false,
+          }}
+        />
+
         {/* Geliştirici tasarım test ekranı */}
         {__DEV__ && (
           <Stack.Screen
