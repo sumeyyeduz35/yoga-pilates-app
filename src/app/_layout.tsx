@@ -1,3 +1,4 @@
+
 import '../global.css';
 
 import {
@@ -16,7 +17,6 @@ import { AuthProvider } from '@/providers/auth-provider';
 import { QueryProvider } from '@/providers/query-provider';
 import { ThemeProvider, useTheme } from '@/providers/theme-provider';
 
-// Fontlar yüklenene kadar Splash Screen görünür kalır.
 void SplashScreen.preventAutoHideAsync();
 
 function AppNavigator() {
@@ -44,31 +44,21 @@ function AppNavigator() {
           },
         }}
       >
-        {/* Ana yönlendirme */}
         <Stack.Screen
           name="index"
-          options={{
-            headerShown: false,
-          }}
+          options={{ headerShown: false }}
         />
 
-        {/* Authentication ekranları */}
         <Stack.Screen
           name="(auth)"
-          options={{
-            headerShown: false,
-          }}
+          options={{ headerShown: false }}
         />
 
-        {/* Dört sekmeli ana navigasyon */}
         <Stack.Screen
           name="(tabs)"
-          options={{
-            headerShown: false,
-          }}
+          options={{ headerShown: false }}
         />
 
-        {/* Profil üzerinden erişilen ayarlar */}
         <Stack.Screen
           name="settings"
           options={{
@@ -77,7 +67,24 @@ function AppNavigator() {
           }}
         />
 
-        {/* Program detay ekranı */}
+        <Stack.Screen
+          name="tracking/achievements"
+          options={{
+            title: 'Tüm Başarılar',
+            headerBackTitle: 'Geri',
+            headerShown: true,
+          }}
+        />
+
+        <Stack.Screen
+  name="tracking/water"
+  options={{
+    title: 'Su Takibi',
+    headerBackTitle: 'Geri',
+    headerShown: true,
+  }}
+/>
+
         <Stack.Screen
           name="program/[slug]"
           options={{
@@ -86,7 +93,6 @@ function AppNavigator() {
           }}
         />
 
-        {/* Egzersiz detay ekranı */}
         <Stack.Screen
           name="exercise/[slug]"
           options={{
@@ -94,7 +100,6 @@ function AppNavigator() {
           }}
         />
 
-        {/* Geliştirici tasarım test ekranı */}
         {__DEV__ && (
           <Stack.Screen
             name="(dev)/design-preview"
