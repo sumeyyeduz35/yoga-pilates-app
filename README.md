@@ -1,5 +1,5 @@
 
-# 🧘 Yoga, Pilates & Reformer
+#  Yoga, Pilates & Reformer
 
 ### Kişiselleştirilmiş Egzersiz ve İyi Oluş Mobil Uygulaması
 ### Personalized Fitness & Wellness Mobile Application
@@ -18,7 +18,7 @@
 
 # 🇹🇷 Türkçe
 
-## 📖 Proje Hakkında
+##  Proje Hakkında
 
 Yoga, Pilates ve Reformer disiplinlerini tek bir platformda buluşturan, kullanıcıların kişisel hedeflerine ve deneyim seviyelerine göre egzersiz keşfetmelerini ve gelişimlerini takip etmelerini sağlayan bir mobil uygulamadır.
 
@@ -26,7 +26,7 @@ Uygulama, kişiselleştirilmiş öneriler ve kullanıcı dostu bir arayüz arac�
 
 Proje aktif olarak geliştirilmektedir.
 
-## ✨ Özellikler
+##  Özellikler
 
 - Kullanıcı kaydı ve kimlik doğrulama
 - Kişisel hedeflere ve deneyim seviyesine göre onboarding
@@ -40,7 +40,7 @@ Proje aktif olarak geliştirilmektedir.
 - Günlük su tüketimi ve hedef takibi
 - Açık ve koyu tema desteği
 
-## 🛠️ Kullanılan Teknolojiler
+##  Kullanılan Teknolojiler
 
 | Teknoloji | Kullanım Amacı |
 |---|---|
@@ -54,11 +54,7 @@ Proje aktif olarak geliştirilmektedir.
 | NativeWind | Arayüz stilleri |
 | ESLint & Prettier | Kod kalitesi ve biçimlendirme |
 
-## 📱 Ekran Görüntüleri
-
-Uygulamaya ait gerçek ekran görüntüleri ilerleyen aşamalarda eklenecektir.
-
-## 🚀 Kurulum
+##  Kurulum
 
 **Gereksinimler:**
 
@@ -90,7 +86,7 @@ npx expo start
 
 > Not: Bazı özelliklerin çalışması için Supabase veritabanı ve ilgili servislerin yapılandırılması gereklidir.
 
-## 🗓️ Geliştirme Durumu
+## Geliştirme Durumu
 
 Proje henüz geliştirme aşamasındadır.
 
@@ -111,7 +107,7 @@ Proje henüz geliştirme aşamasındadır.
 
 [Türkçe](#türkçe) | **English**
 
-## 📖 About the Project
+## About the Project
 
 Yoga, Pilates & Reformer is a mobile fitness and wellness application designed to bring three exercise disciplines together in a single platform.
 
@@ -119,7 +115,7 @@ The application helps users discover exercises based on their personal goals, ex
 
 The project is currently under active development.
 
-## ✨ Features
+##  Features
 
 - User registration and authentication
 - Personalized onboarding experience
@@ -133,7 +129,7 @@ The project is currently under active development.
 - Water intake and daily goal tracking
 - Light and dark theme support
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Technology | Purpose |
 |---|---|
@@ -147,11 +143,8 @@ The project is currently under active development.
 | NativeWind | UI styling |
 | ESLint & Prettier | Code quality and formatting |
 
-## 📱 Screenshots
 
-Actual application screenshots will be added as development progresses.
-
-## 🚀 Getting Started
+## Getting Started
 
 **Prerequisites:**
 
@@ -183,7 +176,7 @@ npx expo start
 
 > Note: Some application features require a properly configured Supabase backend and database.
 
-## 🗓️ Development Status
+##  Development Status
 
 This project is currently under active development.
 
@@ -198,7 +191,7 @@ This project is currently under active development.
 
 ---
 
-## 📌 Project Information
+##  Project Information
 
 **Repository:** [yoga-pilates-app](https://github.com/sumeyyeduz35/yoga-pilates-app)
 
